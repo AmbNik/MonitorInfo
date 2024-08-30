@@ -8,10 +8,12 @@
           link
           @click="navigateTo(item.route)"
         >
-          <v-list-item
-            :prepend-icon="item.icon"
-            :title="item.title"
-          ></v-list-item>
+          <v-list-item-icon>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item-content>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -89,153 +91,19 @@ export default {
     const router = useRouter();
 
     const servicesStore = useServicesStore();
-    const { data } = toRefs(servicesStore);
+
+    // Use `data.data` to get items from servicesStore
+    const items = computed(() => servicesStore.data?.data || []);
 
     onMounted(async () => {
       await servicesStore.getServices();
+      // Debugging: log items to check if they are populated
+      console.log(items.value);
     });
-    const items = [
-      {
-        id: 3,
-        name: "Сервис мониторинга",
-        url: "https://monitoring.example.com",
-        description: "Сервис для мониторинга серверов и приложений.",
-        login: "monitor_user",
-        password: "monitor_pass123",
-        tags: "мониторинг",
-        image: "https://via.placeholder.com/200?text=Мониторинг", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 4,
-        name: "1API для обработки платежей",
-        url: "https://payments.example.com/api",
-        description: "API для интеграции обработки платежей и транзакций.",
-        login: "api_user",
-        password: "api_secret_456",
-        tags: "платежи",
-        image: "https://via.placeholder.com/200?text=Платежи", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 6,
-        name: "1Система управления пользователями",
-        url: "https://users.example.com",
-        description:
-          "Система для управления учетными записями и правами пользователей.",
-        login: "admin",
-        password: "admin_pass789",
-        tags: "администрирование",
-        image: "https://via.placeholder.com/200?text=Администрирование", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 7,
-        name: "2Система управления пользователями",
-        url: "https://users.example.com",
-        description:
-          "Система для управления учетными записями и правами пользователей.",
-        login: "admin",
-        password: "admin_pass789",
-        tags: "администрирование",
-        image: "https://via.placeholder.com/200?text=Администрирование", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 8,
-        name: "2API для обработки платежей",
-        url: "https://payments.example.com/api",
-        description: "API для интеграции обработки платежей и транзакций.",
-        login: "api_user",
-        password: "api_secret_456",
-        tags: "платежи",
-        image: "https://via.placeholder.com/200?text=Платежи", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 9,
-        name: "2Сервис мониторинга",
-        url: "https://monitoring.example.com",
-        description: "Сервис для мониторинга серверов и приложений.",
-        login: "monitor_user",
-        password: "monitor_pass123",
-        tags: "мониторинг",
-        image: "https://via.placeholder.com/200?text=Мониторинг", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 10,
-        name: "3Система управления пользователями",
-        url: "https://users.example.com",
-        description:
-          "Система для управления учетными записями и правами пользователей.",
-        login: "admin",
-        password: "admin_pass789",
-        tags: "администрирование",
-        image: "https://via.placeholder.com/200?text=Администрирование", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 11,
-        name: "3API для обработки платежей",
-        url: "https://payments.example.com/api",
-        description: "API для интеграции обработки платежей и транзакций.",
-        login: "api_user",
-        password: "api_secret_456",
-        tags: "платежи",
-        image: "https://via.placeholder.com/200?text=Платежи", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 12,
-        name: "3Сервис мониторинга",
-        url: "https://monitoring.example.com",
-        description: "Сервис для мониторинга серверов и приложений.",
-        login: "monitor_user",
-        password: "monitor_pass123",
-        tags: "мониторинг",
-        image: "https://via.placeholder.com/200?text=Мониторинг", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 13,
-        name: "4Система управления пользователями",
-        url: "https://users.example.com",
-        description:
-          "Система для управления учетными записями и правами пользователей.",
-        login: "admin",
-        password: "admin_pass789",
-        tags: "администрирование",
-        image: "https://via.placeholder.com/200?text=Администрирование", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 14,
-        name: "4API для обработки платежей",
-        url: "https://payments.example.com/api",
-        description: "API для интеграции обработки платежей и транзакций.",
-        login: "api_user",
-        password: "api_secret_456",
-        tags: "платежи",
-        image: "https://via.placeholder.com/200?text=Платежи", // Example image URL
-        virtual_machine: null,
-      },
-      {
-        id: 15,
-        name: "4Сервис мониторинга",
-        url: "https://monitoring.example.com",
-        description: "Сервис для мониторинга серверов и приложений.",
-        login: "monitor_user",
-        password: "monitor_pass123",
-        tags: "мониторинг",
-        image: "https://via.placeholder.com/200?text=Мониторинг", // Example image URL
-        virtual_machine: null,
-      },
-    ];
 
     const uniqueTags = computed(() => {
       const tags = new Set();
-      items.forEach((item) => {
+      items.value.forEach((item) => {
         if (item.tags) {
           tags.add(item.tags);
         }
@@ -254,7 +122,7 @@ export default {
     ];
 
     const filteredItems = (tag) => {
-      return items.filter((item) => item.tags === tag);
+      return items.value.filter((item) => item.tags === tag);
     };
 
     const openDialog = (item) => {
@@ -264,6 +132,7 @@ export default {
     const navigateTo = (route) => {
       router.push(route);
     };
+
     return {
       drawer,
       panel,
@@ -273,7 +142,6 @@ export default {
       selectedItem,
       openDialog,
       menuItems,
-      data,
     };
   },
 };
