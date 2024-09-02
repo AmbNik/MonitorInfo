@@ -1,5 +1,10 @@
 <template>
-  <v-expansion-panels v-model="panel" multiple>
+  {{ newItem }}
+  <v-btn @click="test">Run Test</v-btn>
+
+  <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
+  <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
+  <v-expansion-panels v-else v-model="panel" multiple>
     <v-expansion-panel v-for="tag in uniqueTags" :key="tag">
       <v-expansion-panel-title>
         <h2>{{ tag }}</h2></v-expansion-panel-title
@@ -227,11 +232,14 @@
           </template>
         </v-text-field>
         <v-text-field label="Теги" v-model="newItem.tags" dense></v-text-field>
-        <v-text-field
+        <v-select
           label="Виртуальная машина"
           v-model="newItem.virtual_machine"
+          :items="virtualMachineOptions"
+          item-value="value"
+          item-title="text"
           dense
-        ></v-text-field>
+        ></v-select>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="addItem">Добавить</v-btn>
@@ -247,6 +255,14 @@ import { ref, computed } from "vue";
 const props = defineProps({
   items: {
     type: Array,
+    required: true,
+  },
+  isLoading: {
+    type: Boolean,
+    required: true,
+  },
+  addService: {
+    type: Function,
     required: true,
   },
 });
@@ -267,6 +283,26 @@ const selectedItem = ref({
   virtual_machine: "",
 });
 
+const virtualMachineOptions = ref([
+  { text: "-----", value: 1 },
+  { text: "abakushka", value: 2 },
+  { text: "Dinner", value: 3 },
+  { text: "abakushka-front", value: 4 },
+  { text: "space", value: 5 },
+  { text: "SUO", value: 6 },
+  { text: "Portainer", value: 7 },
+  { text: "Sentry", value: 8 },
+  { text: "AISKGN", value: 9 },
+  { text: "SUO_V3", value: 10 },
+  { text: "ZetTech", value: 11 },
+
+  // Добавьте другие виртуальные машины по необходимости
+]);
+
+const testMessage = computed(() => {
+  return test();
+});
+
 const newItem = ref({
   name: "",
   url: "",
@@ -274,13 +310,14 @@ const newItem = ref({
   login: "",
   password: "",
   tags: "",
-  virtual_machine: "",
+  virtual_machine: null,
 });
 const saveChanges = () => {
   // Код для сохранения изменений (например, отправка данных на сервер)
   dialog.value = false;
 };
 
+console.log("newItem", newItem.value);
 const passwordVisible = ref(false);
 
 const togglePasswordVisibility = () => {
@@ -319,15 +356,21 @@ const resetNewItem = () => {
     login: "",
     password: "",
     tags: "",
-    virtual_machine: "",
+    virtual_machine: null,
   };
 };
 
 const openAddDialog = (tag) => {
-  resetNewItem(); // Сброс данных перед установкой нового значения
+  resetNewItem();
   newItem.value.tags = tag;
   console.log("newItem.tags", newItem.tags);
   dialogAdd.value = true;
+};
+
+const addItem = () => {
+  props.addService(newItem.value);
+  dialogAdd.value = false;
+  resetNewItem(); // Сброс данных перед установкой нового значения
 };
 </script>
 

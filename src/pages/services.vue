@@ -2,37 +2,28 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Сервисы</h1>
-      <TagAccordion :items="data" />
+      <TagAccordion :items="data" :isLoading="isLoading" />
     </v-container>
   </v-main>
 </template>
-
-<script>
-import { ref, computed, onMounted } from "vue";
+<script setup>
+import { ref, computed, onMounted, toRefs } from "vue";
 import { useRouter } from "vue-router";
 import { useServicesStore } from "@/stores/services";
 
-export default {
-  setup() {
-    const router = useRouter();
+const router = useRouter();
 
-    const servicesStore = useServicesStore();
+const servicesStore = useServicesStore();
 
-    // Use `data.data` to get items from servicesStore
-    const data = computed(() => servicesStore.data?.data || []);
+const { isLoading, error } = toRefs(servicesStore);
+// Use `data.data` to get items from servicesStore
+const data = computed(() => servicesStore.data?.data || []);
 
-    onMounted(async () => {
-      await servicesStore.getServices();
-      // Debugging: log items to check if they are populated
-      console.log(data.value);
-    });
-
-    return {
-      servicesStore,
-      data,
-    };
-  },
-};
+onMounted(async () => {
+  await servicesStore.getServices();
+  // Debugging: log items to check if they are populated
+  console.log(data.value);
+});
 </script>
 
 <style>
