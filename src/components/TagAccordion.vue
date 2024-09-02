@@ -1,54 +1,244 @@
 <template>
-  <v-main style="margin-top: 100px">
-    <v-container>
-      <v-expansion-panels v-model="panel" multiple>
-        <v-expansion-panel v-for="tag in uniqueTags" :key="tag">
-          <v-expansion-panel-title>{{ tag }}</v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-row>
-              <v-col
-                v-for="item in filteredItems(tag)"
-                :key="item.id"
-                cols="12"
-                md="4"
-              >
-                <v-card class="my-2" outlined @click="openDialog(item)">
-                  <v-card-title>{{ item.name }}</v-card-title>
+  <v-expansion-panels v-model="panel" multiple>
+    <v-expansion-panel v-for="tag in uniqueTags" :key="tag">
+      <v-expansion-panel-title>
+        <h2>{{ tag }}</h2></v-expansion-panel-title
+      >
+      <v-expansion-panel-text>
+        <v-row>
+          <!-- Отображать карточку с иконкой "плюс" после последней карточки -->
+          <v-col
+            md="5"
+            lg="4"
+            xl="2"
+            class="align-center justify-center"
+            @click="openAddDialog(tag)"
+          >
+            <v-hover>
+              <template v-slot:default="{ isHovering, props }">
+                <v-card
+                  height="120px"
+                  v-bind="props"
+                  :color="
+                    isHovering
+                      ? 'green-lighten-2 border-opacity-0 '
+                      : 'transparent'
+                  "
+                  border="dashed thin"
+                  class="d-flex align-center justify-center border-lg border-opacity-10"
+                >
+                  <v-icon size="x-large" style="font-size: 50px"
+                    >mdi-plus</v-icon
+                  >
+                </v-card>
+              </template>
+            </v-hover>
+          </v-col>
+          <v-col
+            v-for="(item, index) in filteredItems(tag)"
+            :key="item.id"
+            cols="12"
+            md="5"
+            lg="4"
+            xl="2"
+          >
+            <v-hover>
+              <template v-slot:default="{ isHovering, props }">
+                <v-card
+                  v-bind="props"
+                  height="120px"
+                  :color="isHovering ? 'grey-lighten-2' : 'grey-darken-3'"
+                  @click="openDialogInfo(item)"
+                >
+                  <v-card-title>
+                    <v-row class="align-center justify-space-between">
+                      <v-col class="text-truncate" style="max-width: 350px">
+                        {{ item.name }}
+                      </v-col>
+                      <v-col class="d-flex justify-end">
+                        <v-btn
+                          color="blue-lighten-2"
+                          icon
+                          size="x-small"
+                          @click.stop="openEditDialog(item)"
+                        >
+                          <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                        <v-btn
+                          color="red-lighten-2"
+                          class="ml-2"
+                          size="x-small"
+                          icon
+                          @click.stop="dialogDelete = !dialogDelete"
+                        >
+                          <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-card-title>
+
                   <v-card-subtitle>{{ item.url }}</v-card-subtitle>
-                  <v-card-text>
+                  <v-card-text class="text-truncate" style="max-width: 350px">
                     {{ item.description }}
                   </v-card-text>
                 </v-card>
-              </v-col>
-            </v-row>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </v-container>
+              </template>
+            </v-hover>
+          </v-col>
+        </v-row>
+      </v-expansion-panel-text>
+    </v-expansion-panel>
+  </v-expansion-panels>
 
-    <!-- Dialog for displaying detailed information -->
-    <v-dialog v-model="dialog" max-width="600">
-      <v-card>
-        <v-card-title>
-          <span class="headline">{{ selectedItem?.name }}</span>
-        </v-card-title>
-        <v-card-subtitle>{{ selectedItem?.url }}</v-card-subtitle>
-        <v-card-text>
-          <p><strong>Описание:</strong> {{ selectedItem?.description }}</p>
-          <p><strong>Логин:</strong> {{ selectedItem?.login }}</p>
-          <p><strong>Пароль:</strong> {{ selectedItem?.password }}</p>
-          <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
-          <p>
-            <strong>Виртуальная машина:</strong>
-            {{ selectedItem?.virtual_machine || "Не указана" }}
-          </p>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn text @click="dialog = false">Закрыть</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-main>
+  <v-dialog v-model="dialogInfo" max-width="500">
+    <v-card>
+      <v-card-title>
+        <span class="headline">{{ selectedItem?.name }}</span>
+      </v-card-title>
+      <v-card-subtitle>{{ selectedItem?.url }}</v-card-subtitle>
+      <v-card-text>
+        <p><strong>Описание:</strong> {{ selectedItem?.description }}</p>
+        <p><strong>Логин:</strong> {{ selectedItem?.login }}</p>
+        <p><strong>Пароль:</strong> {{ selectedItem?.password }}</p>
+        <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
+        <p>
+          <strong>Виртуальная машина:</strong>
+          {{ selectedItem?.virtual_machine || "Не указана" }}
+        </p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Диалоговое окно подтверждения удаления -->
+  <v-dialog v-model="dialogDelete" max-width="400">
+    <v-card>
+      <v-card-title class="headline">Удалить элемент?</v-card-title>
+      <v-card-text>
+        Вы уверены, что хотите удалить
+        <strong>{{ selectedItem?.name }}</strong
+        >? Это действие нельзя отменить.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="red" text @click="deleteItemConfirmed">Удалить</v-btn>
+        <v-btn text @click="dialogDelete = false">Отмена</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="dialogEdit" max-width="500">
+    <v-card>
+      <v-card-title>
+        <v-text-field
+          label="Название"
+          v-model="selectedItem.name"
+          dense
+        ></v-text-field>
+      </v-card-title>
+      <v-card-subtitle>
+        <v-text-field
+          label="URL"
+          v-model="selectedItem.url"
+          dense
+        ></v-text-field>
+      </v-card-subtitle>
+      <v-card-text>
+        <v-textarea
+          label="Описание"
+          v-model="selectedItem.description"
+          dense
+          auto-grow
+        ></v-textarea>
+        <v-text-field
+          label="Логин"
+          v-model="selectedItem.login"
+          dense
+        ></v-text-field>
+        <v-text-field
+          label="Пароль"
+          v-model="selectedItem.password"
+          :type="passwordVisible ? 'text' : 'password'"
+          dense
+        >
+          <template v-slot:append-inner>
+            <v-btn variant="text" icon @click="togglePasswordVisibility">
+              <v-icon>
+                {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+              </v-icon>
+            </v-btn>
+          </template>
+        </v-text-field>
+        <v-text-field
+          label="Теги"
+          v-model="selectedItem.tags"
+          dense
+        ></v-text-field>
+        <v-text-field
+          label="Виртуальная машина"
+          v-model="selectedItem.virtual_machine"
+          dense
+        ></v-text-field>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="saveChanges">Сохранить</v-btn>
+        <v-btn text @click="dialog = false">Закрыть</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Модальное окно для добавления нового элемента -->
+  <v-dialog v-model="dialogAdd" max-width="500">
+    <v-card>
+      <v-card-title>
+        <span class="headline">Добавить новый элемент</span>
+      </v-card-title>
+      <v-card-text>
+        <v-text-field
+          label="Название"
+          v-model="newItem.name"
+          dense
+        ></v-text-field>
+        <v-text-field label="URL" v-model="newItem.url" dense></v-text-field>
+        <v-textarea
+          label="Описание"
+          v-model="newItem.description"
+          dense
+          auto-grow
+        ></v-textarea>
+        <v-text-field
+          label="Логин"
+          v-model="newItem.login"
+          dense
+        ></v-text-field>
+        <v-text-field
+          label="Пароль"
+          v-model="newItem.password"
+          :type="passwordVisible ? 'text' : 'password'"
+          dense
+        >
+          <template v-slot:append-inner>
+            <v-btn variant="text" icon @click="togglePasswordVisibility">
+              <v-icon>
+                {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+              </v-icon>
+            </v-btn>
+          </template>
+        </v-text-field>
+        <v-text-field label="Теги" v-model="newItem.tags" dense></v-text-field>
+        <v-text-field
+          label="Виртуальная машина"
+          v-model="newItem.virtual_machine"
+          dense
+        ></v-text-field>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="addItem">Добавить</v-btn>
+        <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -62,8 +252,40 @@ const props = defineProps({
 });
 
 const panel = ref([]);
-const dialog = ref(false);
-const selectedItem = ref(null);
+const dialogInfo = ref(false);
+const dialogEdit = ref(false);
+const dialogAdd = ref(false);
+const dialogDelete = ref(false);
+
+const selectedItem = ref({
+  name: "",
+  url: "",
+  description: "",
+  login: "",
+  password: "",
+  tags: "",
+  virtual_machine: "",
+});
+
+const newItem = ref({
+  name: "",
+  url: "",
+  description: "",
+  login: "",
+  password: "",
+  tags: "",
+  virtual_machine: "",
+});
+const saveChanges = () => {
+  // Код для сохранения изменений (например, отправка данных на сервер)
+  dialog.value = false;
+};
+
+const passwordVisible = ref(false);
+
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value;
+};
 
 const uniqueTags = computed(() => {
   const tags = new Set();
@@ -79,9 +301,33 @@ const filteredItems = (tag) => {
   return props.items.filter((item) => item.tags === tag);
 };
 
-const openDialog = (item) => {
+const openDialogInfo = (item) => {
   selectedItem.value = item;
-  dialog.value = true;
+  dialogInfo.value = true;
+};
+
+const openEditDialog = (item) => {
+  selectedItem.value = { ...item }; // создаем копию объекта, чтобы избежать прямого изменения данных
+  dialogEdit.value = true;
+};
+
+const resetNewItem = () => {
+  newItem.value = {
+    name: "",
+    url: "",
+    description: "",
+    login: "",
+    password: "",
+    tags: "",
+    virtual_machine: "",
+  };
+};
+
+const openAddDialog = (tag) => {
+  resetNewItem(); // Сброс данных перед установкой нового значения
+  newItem.value.tags = tag;
+  console.log("newItem.tags", newItem.tags);
+  dialogAdd.value = true;
 };
 </script>
 

@@ -21,21 +21,28 @@
     <v-app-bar app>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-toolbar-title>Мое приложение</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <!-- Search component -->
+      <SearchBar v-model:searchQuery="searchQuery" />
     </v-app-bar>
 
     <!-- Main content -->
-    <!-- <v-main> </v-main> -->
     <router-view />
   </v-app>
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
+import SearchBar from "@/components/SearchBar.vue"; // Adjust path as necessary
 
 export default {
+  components: {
+    SearchBar,
+  },
   setup() {
     const drawer = ref(false);
+    const searchQuery = ref("");
     const router = useRouter();
 
     const menuItems = [
@@ -56,6 +63,7 @@ export default {
       drawer,
       menuItems,
       navigateTo,
+      searchQuery,
     };
   },
 };
