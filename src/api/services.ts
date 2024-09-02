@@ -9,5 +9,9 @@ const getServices = () => {
 const addService = (serviceData: any) => {
   return axios.post(`/services/`, serviceData);
 };
+// Метод для обновления существующего сервиса
+const updateService = (id: any, serviceData: any) => {
+  return axios.put(`/services/${id}/`, serviceData);
+};
 
-export default { getServices, addService };
+export default { getServices, addService, updateService };

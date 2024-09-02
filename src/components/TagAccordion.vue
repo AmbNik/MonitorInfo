@@ -1,6 +1,7 @@
 <template>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
+  <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-expansion-panels v-else v-model="panel" multiple>
     <v-expansion-panel v-for="tag in uniqueTags" :key="tag">
       <v-expansion-panel-title>
@@ -133,20 +134,29 @@
   <v-dialog v-model="dialogEdit" max-width="500">
     <v-card>
       <v-card-title>
+        <span class="headline">Добавить новый элемент</span>
+      </v-card-title>
+      <v-card-text>
         <v-text-field
           label="Название"
           v-model="selectedItem.name"
+          :rules="[(v) => !!v || 'Название обязательно']"
+          required
+          class="mb-4"
           dense
         ></v-text-field>
-      </v-card-title>
-      <v-card-subtitle>
         <v-text-field
           label="URL"
           v-model="selectedItem.url"
-          dense
+          :rules="[
+            (v) => !!v || 'URL обязателен',
+            (v) =>
+              /https?:\/\/\S+\.\S+/g.test(v) ||
+              'Некорректный формат URL. Например, https://example.com',
+          ]"
+          required
+          class="mb-4"
         ></v-text-field>
-      </v-card-subtitle>
-      <v-card-text>
         <v-textarea
           label="Описание"
           v-model="selectedItem.description"
@@ -156,13 +166,19 @@
         <v-text-field
           label="Логин"
           v-model="selectedItem.login"
+          :rules="[(v) => !!v || 'Логин обязательно']"
           dense
+          required
+          class="mb-4"
         ></v-text-field>
         <v-text-field
           label="Пароль"
+          required
           v-model="selectedItem.password"
           :type="passwordVisible ? 'text' : 'password'"
+          :rules="[(v) => !!v || 'Пароль обязательно']"
           dense
+          class="mb-4"
         >
           <template v-slot:append-inner>
             <v-btn variant="text" icon @click="togglePasswordVisibility">
@@ -177,15 +193,21 @@
           v-model="selectedItem.tags"
           dense
         ></v-text-field>
-        <v-text-field
+        <v-select
           label="Виртуальная машина"
           v-model="selectedItem.virtual_machine"
+          :items="virtualMachineOptions"
+          item-value="value"
+          item-title="text"
           dense
-        ></v-text-field>
+          class="mb-4"
+        ></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="saveChanges">Сохранить</v-btn>
-        <v-btn text @click="dialog = false">Закрыть</v-btn>
+        <v-btn text @click="editItem()" :disabled="!validateFormEdit()"
+          >Сохранить</v-btn
+        >
+        <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -285,6 +307,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  updateService: {
+    type: Function,
+    required: true,
+  },
 });
 
 const panel = ref([]);
@@ -294,13 +320,14 @@ const dialogAdd = ref(false);
 const dialogDelete = ref(false);
 
 const selectedItem = ref({
+  id: "",
   name: "",
   url: "",
   description: "",
   login: "",
   password: "",
   tags: "",
-  virtual_machine: "",
+  virtual_machine: null,
 });
 
 const virtualMachineOptions = ref([
@@ -388,8 +415,12 @@ const openAddDialog = (tag) => {
 };
 
 const addItem = () => {
-  props.addService(newItem.value);
   dialogAdd.value = false;
+  props.addService(newItem.value);
+};
+const editItem = () => {
+  dialogEdit.value = false;
+  props.updateService(selectedItem.value);
 };
 
 const validateForm = () => {
@@ -400,6 +431,17 @@ const validateForm = () => {
     /https?:\/\/\S+\.\S+/g.test(newItem.value.url) &&
     newItem.value.login &&
     newItem.value.password
+  );
+};
+
+const validateFormEdit = () => {
+  // Проверяем все поля формы и возвращаем true, если они валидны
+  return (
+    selectedItem.value.name &&
+    selectedItem.value.url &&
+    /https?:\/\/\S+\.\S+/g.test(selectedItem.value.url) &&
+    selectedItem.value.login &&
+    selectedItem.value.password
   );
 };
 </script>

@@ -32,24 +32,35 @@ export const useServicesStore = defineStore("services", () => {
     }
   };
 
-  const addServicesStart = () => {
+  const ServicesStart = () => {
     isLoading.value = true;
   };
 
-  const addServicesSuccess = () => {
+  const ServicesSuccess = () => {
     isLoading.value = false;
   };
-  const addServicesFailure = () => {
+  const ServicesFailure = () => {
     isLoading.value = false;
   };
 
   const addServices = async (serviceData: any): Promise<any> => {
     try {
-      addServicesStart();
+      ServicesStart();
       await servicesApi.addService(serviceData);
-      addServicesSuccess();
+      ServicesSuccess();
     } catch (errors: any) {
       getServicesFailure();
+      throw errors;
+    }
+  };
+
+  const updateService = async (id: any, selectedItem: any): Promise<any> => {
+    try {
+      ServicesStart();
+      await servicesApi.updateService(id, selectedItem);
+      ServicesSuccess();
+    } catch (errors: any) {
+      ServicesFailure();
       throw errors;
     }
   };
@@ -63,8 +74,9 @@ export const useServicesStore = defineStore("services", () => {
     getServicesSuccess,
     getServicesFailure,
     addServices,
-    addServicesStart,
-    addServicesSuccess,
-    addServicesFailure,
+    ServicesStart,
+    ServicesSuccess,
+    ServicesFailure,
+    updateService,
   };
 });

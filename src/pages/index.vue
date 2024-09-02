@@ -6,6 +6,7 @@
         :items="data"
         :isLoading="isLoading"
         :addService="addService"
+        :updateService="updateService"
       />
     </v-container>
   </v-main>
@@ -38,9 +39,17 @@ const addService = async (newService) => {
   try {
     await servicesStore.addServices(newService);
     await servicesStore.getServices(); // Перезагрузите список сервисов
-    dialogAdd.value = false;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
+  }
+};
+
+const updateService = async (selectedItem) => {
+  try {
+    await servicesStore.updateService(selectedItem.id, selectedItem);
+    await servicesStore.getServices(); // Перезагрузите список сервисов
+  } catch (e) {
+    console.error("Ошибка при редактирования сервиса:", e);
   }
 };
 </script>
