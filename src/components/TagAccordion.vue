@@ -1,37 +1,4 @@
 <template>
-  <!-- <v-row>
-    <v-col cols="12" offset-sm="3" sm="6">
-      <v-card height="200px">
-        <v-card-title class="bg-blue d-flex align-center">
-          <span class="text-h5">Menu</span>
-
-          <v-spacer></v-spacer>
-
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn
-                icon="mdi-dots-vertical"
-                variant="text"
-                v-bind="props"
-              ></v-btn>
-            </template>
-
-            <v-list>
-              <v-list-item @click="openEditDialog">
-                <v-list-item-title>Редактировать</v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>Удалить</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-card-title>
-
-        <v-card-text>Lorem Ipsum</v-card-text>
-      </v-card>
-    </v-col>
-  </v-row> -->
-
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-expansion-panels v-else v-model="panel" multiple>
@@ -233,9 +200,23 @@
         <v-text-field
           label="Название"
           v-model="newItem.name"
+          :rules="[(v) => !!v || 'Название обязательно']"
+          required
+          class="mb-4"
           dense
         ></v-text-field>
-        <v-text-field label="URL" v-model="newItem.url" dense></v-text-field>
+        <v-text-field
+          label="URL"
+          v-model="newItem.url"
+          :rules="[
+            (v) => !!v || 'URL обязателен',
+            (v) =>
+              /https?:\/\/\S+\.\S+/g.test(v) ||
+              'Некорректный формат URL. Например, https://example.com',
+          ]"
+          required
+          class="mb-4"
+        ></v-text-field>
         <v-textarea
           label="Описание"
           v-model="newItem.description"
@@ -245,13 +226,19 @@
         <v-text-field
           label="Логин"
           v-model="newItem.login"
+          :rules="[(v) => !!v || 'Логин обязательно']"
           dense
+          required
+          class="mb-4"
         ></v-text-field>
         <v-text-field
           label="Пароль"
+          required
           v-model="newItem.password"
           :type="passwordVisible ? 'text' : 'password'"
+          :rules="[(v) => !!v || 'Пароль обязательно']"
           dense
+          class="mb-4"
         >
           <template v-slot:append-inner>
             <v-btn variant="text" icon @click="togglePasswordVisibility">
@@ -269,10 +256,13 @@
           item-value="value"
           item-title="text"
           dense
+          class="mb-4"
         ></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="addItem">Добавить</v-btn>
+        <v-btn text @click="addItem" :disabled="!validateForm()"
+          >Добавить</v-btn
+        >
         <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
@@ -400,7 +390,17 @@ const openAddDialog = (tag) => {
 const addItem = () => {
   props.addService(newItem.value);
   dialogAdd.value = false;
-  resetNewItem(); // Сброс данных перед установкой нового значения
+};
+
+const validateForm = () => {
+  // Проверяем все поля формы и возвращаем true, если они валидны
+  return (
+    newItem.value.name &&
+    newItem.value.url &&
+    /https?:\/\/\S+\.\S+/g.test(newItem.value.url) &&
+    newItem.value.login &&
+    newItem.value.password
+  );
 };
 </script>
 
