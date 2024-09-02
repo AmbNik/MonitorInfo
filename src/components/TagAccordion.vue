@@ -72,7 +72,7 @@
                           <v-list-item @click="openEditDialog(item)">
                             <v-list-item-title>Редактировать</v-list-item-title>
                           </v-list-item>
-                          <v-list-item>
+                          <v-list-item @click="openDeleteDialog(item)">
                             <v-list-item-title>Удалить</v-list-item-title>
                           </v-list-item>
                         </v-list>
@@ -311,6 +311,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  deleteService: {
+    type: Function,
+    required: true,
+  },
 });
 
 const panel = ref([]);
@@ -378,7 +382,8 @@ const uniqueTags = computed(() => {
       tags.add(item.tags);
     }
   });
-  return Array.from(tags);
+  // Преобразуем Set в массив и сортируем по алфавиту
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
 });
 
 const filteredItems = (tag) => {
@@ -393,6 +398,11 @@ const openDialogInfo = (item) => {
 const openEditDialog = (item) => {
   selectedItem.value = { ...item }; // создаем копию объекта, чтобы избежать прямого изменения данных
   dialogEdit.value = true;
+};
+
+const openDeleteDialog = (item) => {
+  selectedItem.value = { ...item };
+  dialogDelete.value = true;
 };
 
 const resetNewItem = () => {
@@ -421,6 +431,11 @@ const addItem = () => {
 const editItem = () => {
   dialogEdit.value = false;
   props.updateService(selectedItem.value);
+};
+
+const deleteItemConfirmed = () => {
+  dialogDelete.value = false;
+  props.deleteService(selectedItem.value.id);
 };
 
 const validateForm = () => {

@@ -14,4 +14,9 @@ const updateService = (id: any, serviceData: any) => {
   return axios.put(`/services/${id}/`, serviceData);
 };
 
-export default { getServices, addService, updateService };
+// Метод для удаления сервиса
+const deleteService = (id: any) => {
+  return axios.delete(`/services/${id}/`);
+};
+
+export default { getServices, addService, updateService, deleteService };

@@ -65,6 +65,17 @@ export const useServicesStore = defineStore("services", () => {
     }
   };
 
+  const deleteService = async (id: any): Promise<any> => {
+    try {
+      ServicesStart();
+      await servicesApi.deleteService(id);
+      ServicesSuccess();
+    } catch (errors: any) {
+      ServicesFailure();
+      throw errors;
+    }
+  };
+
   return {
     data,
     getServices,
@@ -78,5 +89,6 @@ export const useServicesStore = defineStore("services", () => {
     ServicesSuccess,
     ServicesFailure,
     updateService,
+    deleteService,
   };
 });
