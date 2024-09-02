@@ -2,7 +2,11 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Сервисы</h1>
-      <TagAccordion :items="data" :isLoading="isLoading" />
+      <TagAccordion
+        :items="data"
+        :isLoading="isLoading"
+        :addService="addService"
+      />
     </v-container>
   </v-main>
 </template>
@@ -24,6 +28,21 @@ onMounted(async () => {
   // Debugging: log items to check if they are populated
   console.log(data.value);
 });
+
+const test = () => {
+  console.log("test");
+};
+
+const addService = async (newService) => {
+  console.log("newService", newService);
+  try {
+    await servicesStore.addServices(newService);
+    await servicesStore.getServices(); // Перезагрузите список сервисов
+    dialogAdd.value = false;
+  } catch (e) {
+    console.error("Ошибка при добавлении сервиса:", e);
+  }
+};
 </script>
 
 <style>
