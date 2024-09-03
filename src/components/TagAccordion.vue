@@ -1,4 +1,11 @@
 <template>
+  <v-alert
+    v-if="props.error"
+    title="Ошибка сервера"
+    type="error"
+    variant="outlined"
+    >{{ props.error.message }}</v-alert
+  >
   <v-sheet class="d-flex flex-column">
     <v-snackbar
       v-model="successEdit"
