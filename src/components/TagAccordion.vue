@@ -1,34 +1,40 @@
 <template>
-  <v-alert
-    v-if="props.error"
-    title="Ошибка сервера"
-    type="error"
-    variant="outlined"
-    >{{ props.error.message }}</v-alert
-  >
-  <v-alert v-if="successDelete" type="success" variant="outlined" class="mb-4">
-    <h3>
-      Запись <strong>{{ selectedItem?.name }}</strong> успешно удалена
-    </h3>
-  </v-alert>
-  <v-alert v-if="successEdit" type="success" variant="outlined" class="mb-4">
-    <h3>
-      Запись <strong>{{ selectedItem?.name }}</strong> успешно изменена
-    </h3>
-  </v-alert>
+  <v-sheet class="d-flex flex-column">
+    <v-snackbar
+      v-model="successEdit"
+      color="green-darken-1"
+      class="align-start pt-10"
+    >
+      <h2>
+        Запись <strong>{{ selectedItem?.name }}</strong> успешно изменена
+      </h2>
+    </v-snackbar>
+  </v-sheet>
 
-  <v-alert
-    v-if="successAdd"
-    type="success"
-    variant="outlined"
-    class="mb-4"
-    transition="scroll-x-transition"
-    ы
-  >
-    <h3>
-      Запись <strong>{{ newItem?.name }}</strong> успешно добавлена
-    </h3>
-  </v-alert>
+  <v-sheet class="d-flex flex-column">
+    <v-snackbar
+      v-model="successDelete"
+      color="green-darken-1"
+      class="align-start pt-10"
+    >
+      <h2>
+        Запись <strong>{{ selectedItem?.name }}</strong> успешно удалена
+      </h2>
+    </v-snackbar>
+  </v-sheet>
+
+  <v-sheet class="d-flex flex-column">
+    <v-snackbar
+      v-model="successAdd"
+      color="green-darken-1"
+      class="align-start pt-10"
+    >
+      <h2>
+        Запись <strong>{{ newItem?.name }}</strong> успешно добавлена
+      </h2>
+    </v-snackbar>
+  </v-sheet>
+
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
@@ -376,6 +382,7 @@ const successDelete = ref(false);
 const successEdit = ref(false);
 const successAdd = ref(false);
 const dialogLoader = ref(false);
+const dialog = ref(true);
 
 const selectedItem = ref({
   id: "",
