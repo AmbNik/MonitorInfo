@@ -491,6 +491,7 @@ const openAddDialog = (tag) => {
 const addItem = async () => {
   dialogAdd.value = false;
   dialogLoader.value = true;
+  successAdd.value = false;
   try {
     await props.addService(newItem.value);
     successAdd.value = true;
@@ -510,6 +511,7 @@ let editItemTimeout;
 const editItem = async () => {
   dialogEdit.value = false;
   dialogLoader.value = true;
+  successEdit.value = false;
 
   try {
     await props.updateService(selectedItem.value);
@@ -535,7 +537,7 @@ let editDeleteTimeout;
 const deleteItemConfirmed = async () => {
   dialogDelete.value = false;
   dialogLoader.value = true;
-
+  successDelete.value = false;
   try {
     await props.deleteService(selectedItem.value.id);
     successDelete.value = true;
