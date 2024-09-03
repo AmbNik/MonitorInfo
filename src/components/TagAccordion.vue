@@ -12,9 +12,9 @@
       color="green-darken-1"
       class="align-start pt-10"
     >
-      <h2>
-        Запись <strong>{{ selectedItem?.name }}</strong> успешно изменена
-      </h2>
+      <p class="text-h5">
+        Запись <strong>{{ props.selectedItem?.name }}</strong> успешно изменена
+      </p>
     </v-snackbar>
   </v-sheet>
 
@@ -24,9 +24,9 @@
       color="green-darken-1"
       class="align-start pt-10"
     >
-      <h2>
-        Запись <strong>{{ selectedItem?.name }}</strong> успешно удалена
-      </h2>
+      <p class="text-h5">
+        Запись <strong>{{ props.selectedItem?.name }}</strong> успешно удалена
+      </p>
     </v-snackbar>
   </v-sheet>
 
@@ -36,9 +36,9 @@
       color="green-darken-1"
       class="align-start pt-10"
     >
-      <h2>
+      <p class="text-h5">
         Запись <strong>{{ newItem?.name }}</strong> успешно добавлена
-      </h2>
+      </p>
     </v-snackbar>
   </v-sheet>
 
@@ -139,17 +139,17 @@
   <v-dialog v-model="dialogInfo" max-width="500">
     <v-card>
       <v-card-title>
-        <span class="headline">{{ selectedItem?.name }}</span>
+        <span class="headline">{{ props.selectedItem?.name }}</span>
       </v-card-title>
-      <v-card-subtitle>{{ selectedItem?.url }}</v-card-subtitle>
+      <v-card-subtitle>{{ props.selectedItem?.url }}</v-card-subtitle>
       <v-card-text>
-        <p><strong>Описание:</strong> {{ selectedItem?.description }}</p>
-        <p><strong>Логин:</strong> {{ selectedItem?.login }}</p>
-        <p><strong>Пароль:</strong> {{ selectedItem?.password }}</p>
-        <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
+        <p><strong>Описание:</strong> {{ props.selectedItem?.description }}</p>
+        <p><strong>Логин:</strong> {{ props.selectedItem?.login }}</p>
+        <p><strong>Пароль:</strong> {{ props.selectedItem?.password }}</p>
+        <p><strong>Теги:</strong> {{ props.selectedItem?.tags }}</p>
         <p>
           <strong>Виртуальная машина:</strong>
-          {{ selectedItem?.virtual_machine || "Не указана" }}
+          {{ props.selectedItem?.virtual_machine || "Не указана" }}
         </p>
       </v-card-text>
       <v-card-actions>
@@ -164,7 +164,7 @@
       <v-card-title class="headline">Удалить элемент?</v-card-title>
       <v-card-text>
         Вы уверены, что хотите удалить
-        <strong>{{ selectedItem?.name }}</strong
+        <strong>{{ props.selectedItem?.name }}</strong
         >? Это действие нельзя отменить.
       </v-card-text>
       <v-card-actions>
@@ -182,7 +182,7 @@
       <v-card-text>
         <v-text-field
           label="Название"
-          v-model="selectedItem.name"
+          v-model="props.selectedItem.name"
           :rules="[(v) => !!v || 'Название обязательно']"
           required
           class="mb-4"
@@ -190,7 +190,7 @@
         ></v-text-field>
         <v-text-field
           label="URL"
-          v-model="selectedItem.url"
+          v-model="props.selectedItem.url"
           :rules="[
             (v) => !!v || 'URL обязателен',
             (v) =>
@@ -202,13 +202,13 @@
         ></v-text-field>
         <v-textarea
           label="Описание"
-          v-model="selectedItem.description"
+          v-model="props.selectedItem.description"
           dense
           auto-grow
         ></v-textarea>
         <v-text-field
           label="Логин"
-          v-model="selectedItem.login"
+          v-model="props.selectedItem.login"
           :rules="[(v) => !!v || 'Логин обязательно']"
           dense
           required
@@ -217,7 +217,7 @@
         <v-text-field
           label="Пароль"
           required
-          v-model="selectedItem.password"
+          v-model="props.selectedItem.password"
           :type="passwordVisible ? 'text' : 'password'"
           :rules="[(v) => !!v || 'Пароль обязательно']"
           dense
@@ -231,14 +231,15 @@
             </v-btn>
           </template>
         </v-text-field>
-        <v-text-field
+
+        <v-combobox
           label="Теги"
-          v-model="selectedItem.tags"
-          dense
-        ></v-text-field>
+          v-model="props.selectedItem.tags"
+          :items="uniqueTags"
+        ></v-combobox>
         <v-select
           label="Виртуальная машина"
-          v-model="selectedItem.virtual_machine"
+          v-model="props.selectedItem.virtual_machine"
           :items="virtualMachineOptions"
           item-value="value"
           item-title="text"
@@ -247,7 +248,10 @@
         ></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="editItem()" :disabled="!validateFormEdit()"
+        <v-btn
+          text
+          @click="editItem()"
+          :disabled="!validateForm(props.selectedItem)"
           >Сохранить</v-btn
         >
         <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
@@ -313,7 +317,12 @@
             </v-btn>
           </template>
         </v-text-field>
-        <v-text-field label="Теги" v-model="newItem.tags" dense></v-text-field>
+
+        <v-combobox
+          label="Теги"
+          v-model="newItem.tags"
+          :items="uniqueTags"
+        ></v-combobox>
         <v-select
           label="Виртуальная машина"
           v-model="newItem.virtual_machine"
@@ -325,7 +334,7 @@
         ></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="addItem" :disabled="!validateForm()"
+        <v-btn text @click="addItem" :disabled="!validateForm(newItem)"
           >Добавить</v-btn
         >
         <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
@@ -350,7 +359,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick, defineEmits } from "vue";
+
+const emit = defineEmits(["update-selected-item", "update-new-item"]);
 
 const props = defineProps({
   items: {
@@ -377,6 +388,8 @@ const props = defineProps({
     type: [String, Object], // Указываем, что это может быть строка или объект
     default: "", // Устанавливаем значение по умолчанию для не обязательного пропса
   },
+  selectedItem: { type: Object, required: true },
+  newItem: { type: Object, required: true },
 });
 
 // console.log("props.error", props.error);
@@ -391,19 +404,7 @@ const successAdd = ref(false);
 const dialogLoader = ref(false);
 const dialog = ref(true);
 
-const selectedItem = ref({
-  id: "",
-  name: "",
-  url: "",
-  description: "",
-  login: "",
-  password: "",
-  tags: "",
-  virtual_machine: null,
-});
-
 const virtualMachineOptions = ref([
-  { text: "-----", value: 1 },
   { text: "abakushka", value: 2 },
   { text: "Dinner", value: 3 },
   { text: "abakushka-front", value: 4 },
@@ -418,25 +419,12 @@ const virtualMachineOptions = ref([
   // Добавьте другие виртуальные машины по необходимости
 ]);
 
-const testMessage = computed(() => {
-  return test();
-});
-
-const newItem = ref({
-  name: "",
-  url: "",
-  description: "",
-  login: "",
-  password: "",
-  tags: "",
-  virtual_machine: null,
-});
 const saveChanges = () => {
   // Код для сохранения изменений (например, отправка данных на сервер)
   dialog.value = false;
 };
 
-console.log("newItem", newItem.value);
+console.log("newItem", props.newItem);
 const passwordVisible = ref(false);
 
 const togglePasswordVisibility = () => {
@@ -457,48 +445,42 @@ const uniqueTags = computed(() => {
 const filteredItems = (tag) => {
   return props.items.filter((item) => item.tags === tag);
 };
-
+const resetSuccessFlags = async () => {
+  successDelete.value = false;
+  successEdit.value = false;
+  successAdd.value = false;
+};
 const openDialogInfo = (item) => {
-  selectedItem.value = item;
+  resetSuccessFlags();
+
+  emit("update-selected-item", item);
+  console.log("Selected Item:", props.selectedItem.name);
+
   dialogInfo.value = true;
 };
 
 const openEditDialog = (item) => {
   resetSuccessFlags();
-  successEdit.value = false;
-  selectedItem.value = { ...item };
-  dialogEdit.value = true;
-};
+  emit("update-selected-item", item);
+  console.log("props.selectedItem:", props.selectedItem);
 
-const resetSuccessFlags = () => {
-  successDelete.value = false;
-  successEdit.value = false;
-  successAdd.value = false;
+  dialogEdit.value = true;
 };
 
 const openDeleteDialog = (item) => {
   resetSuccessFlags();
-  selectedItem.value = { ...item };
+  emit("update-selected-item", item);
   dialogDelete.value = true;
 };
 
 const resetNewItem = () => {
-  newItem.value = {
-    name: "",
-    url: "",
-    description: "",
-    login: "",
-    password: "",
-    tags: "",
-    virtual_machine: null,
-  };
+  emit("update-new-item");
 };
 
 const openAddDialog = (tag) => {
   resetSuccessFlags();
   resetNewItem();
-  newItem.value.tags = tag;
-  console.log("newItem.tags", newItem.tags);
+  props.newItem.tags = tag;
   dialogAdd.value = true;
 };
 
@@ -507,7 +489,7 @@ const addItem = async () => {
   dialogLoader.value = true;
   successAdd.value = false;
   try {
-    await props.addService(newItem.value);
+    await props.addService(props.newItem);
     successAdd.value = true;
     dialogLoader.value = false;
     setTimeout(() => {
@@ -528,7 +510,7 @@ const editItem = async () => {
   successEdit.value = false;
 
   try {
-    await props.updateService(selectedItem.value);
+    await props.updateService(props.selectedItem);
     successEdit.value = true;
     dialogLoader.value = false;
 
@@ -553,7 +535,7 @@ const deleteItemConfirmed = async () => {
   dialogLoader.value = true;
   successDelete.value = false;
   try {
-    await props.deleteService(selectedItem.value.id);
+    await props.deleteService(props.selectedItem.id);
     successDelete.value = true;
     dialogLoader.value = false;
 
@@ -569,25 +551,14 @@ const deleteItemConfirmed = async () => {
   }
 };
 
-const validateForm = () => {
+const validateForm = (item) => {
   // Проверяем все поля формы и возвращаем true, если они валидны
   return (
-    newItem.value.name &&
-    newItem.value.url &&
-    /https?:\/\/\S+\.\S+/g.test(newItem.value.url) &&
-    newItem.value.login &&
-    newItem.value.password
-  );
-};
-
-const validateFormEdit = () => {
-  // Проверяем все поля формы и возвращаем true, если они валидны
-  return (
-    selectedItem.value.name &&
-    selectedItem.value.url &&
-    /https?:\/\/\S+\.\S+/g.test(selectedItem.value.url) &&
-    selectedItem.value.login &&
-    selectedItem.value.password
+    item.name &&
+    item.url &&
+    /https?:\/\/\S+\.\S+/g.test(item.url) &&
+    item.login &&
+    item.password
   );
 };
 </script>
