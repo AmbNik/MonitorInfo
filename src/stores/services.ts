@@ -42,6 +42,7 @@ export const useServicesStore = defineStore("services", () => {
   const ServicesSuccess = () => {
     isLoading.value = false;
   };
+
   const ServicesFailure = (errors: any) => {
     isLoading.value = false;
     error.value = errors;

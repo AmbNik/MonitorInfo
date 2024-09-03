@@ -31,6 +31,7 @@ onMounted(async () => {
     await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при получения сервиса:", e);
+    throw e;
   }
   // Debugging: log items to check if they are populated
   console.log(data.value);
@@ -47,6 +48,7 @@ const addService = async (newService) => {
     await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
+    throw e;
   }
 };
 
@@ -56,6 +58,7 @@ const updateService = async (selectedItem) => {
     await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при редактирования сервиса:", e);
+    throw e;
   }
 };
 
@@ -65,6 +68,7 @@ const deleteService = async (id) => {
     await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при удалении сервиса:", e);
+    throw e;
   }
 };
 </script>

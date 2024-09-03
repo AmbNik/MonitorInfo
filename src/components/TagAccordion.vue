@@ -1,8 +1,34 @@
 <template>
-  <v-alert v-if="props.error" title="Ошибка сервера" type="error">{{
-    props.error.message
-  }}</v-alert>
+  <v-alert
+    v-if="props.error"
+    title="Ошибка сервера"
+    type="error"
+    variant="outlined"
+    >{{ props.error.message }}</v-alert
+  >
+  <v-alert v-if="successDelete" type="success" variant="outlined" class="mb-4">
+    <h3>
+      Запись <strong>{{ selectedItem?.name }}</strong> успешно удалена
+    </h3>
+  </v-alert>
+  <v-alert v-if="successEdit" type="success" variant="outlined" class="mb-4">
+    <h3>
+      Запись <strong>{{ selectedItem?.name }}</strong> успешно изменена
+    </h3>
+  </v-alert>
 
+  <v-alert
+    v-if="successAdd"
+    type="success"
+    variant="outlined"
+    class="mb-4"
+    transition="scroll-x-transition"
+    ы
+  >
+    <h3>
+      Запись <strong>{{ newItem?.name }}</strong> успешно добавлена
+    </h3>
+  </v-alert>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
@@ -293,6 +319,21 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="dialogLoader" max-width="320" persistent>
+    <v-list class="py-2" color="primary" elevation="12" rounded="lg">
+      <v-list-item title="Выполнение операции">
+        <template v-slot:append>
+          <v-progress-circular
+            color="primary"
+            indeterminate="disable-shrink"
+            size="16"
+            width="2"
+          ></v-progress-circular>
+        </template>
+      </v-list-item>
+    </v-list>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -331,6 +372,10 @@ const dialogInfo = ref(false);
 const dialogEdit = ref(false);
 const dialogAdd = ref(false);
 const dialogDelete = ref(false);
+const successDelete = ref(false);
+const successEdit = ref(false);
+const successAdd = ref(false);
+const dialogLoader = ref(false);
 
 const selectedItem = ref({
   id: "",
@@ -405,11 +450,20 @@ const openDialogInfo = (item) => {
 };
 
 const openEditDialog = (item) => {
-  selectedItem.value = { ...item }; // создаем копию объекта, чтобы избежать прямого изменения данных
+  resetSuccessFlags();
+  successEdit.value = false;
+  selectedItem.value = { ...item };
   dialogEdit.value = true;
 };
 
+const resetSuccessFlags = () => {
+  successDelete.value = false;
+  successEdit.value = false;
+  successAdd.value = false;
+};
+
 const openDeleteDialog = (item) => {
+  resetSuccessFlags();
   selectedItem.value = { ...item };
   dialogDelete.value = true;
 };
@@ -427,24 +481,76 @@ const resetNewItem = () => {
 };
 
 const openAddDialog = (tag) => {
+  resetSuccessFlags();
   resetNewItem();
   newItem.value.tags = tag;
   console.log("newItem.tags", newItem.tags);
   dialogAdd.value = true;
 };
 
-const addItem = () => {
+const addItem = async () => {
   dialogAdd.value = false;
-  props.addService(newItem.value);
+  dialogLoader.value = true;
+  try {
+    await props.addService(newItem.value);
+    successAdd.value = true;
+    dialogLoader.value = false;
+    setTimeout(() => {
+      successAdd.value = false;
+    }, 5000);
+  } catch (error) {
+    console.error("Ошибка при добавлении записи:", error);
+    successAdd.value = false;
+    dialogLoader.value = false;
+  }
 };
-const editItem = () => {
+// Переменная для хранения идентификатора таймера
+let editItemTimeout;
+
+const editItem = async () => {
   dialogEdit.value = false;
-  props.updateService(selectedItem.value);
+  dialogLoader.value = true;
+
+  try {
+    await props.updateService(selectedItem.value);
+    successEdit.value = true;
+    dialogLoader.value = false;
+
+    // Очистка предыдущего таймера (если есть)
+    clearTimeout(editItemTimeout);
+
+    editItemTimeout = setTimeout(() => {
+      successEdit.value = false;
+    }, 5000);
+  } catch (error) {
+    console.error("Ошибка при редактировании записи:", error);
+    successEdit.value = false;
+    dialogLoader.value = false;
+  }
 };
 
-const deleteItemConfirmed = () => {
+// Переменная для хранения идентификатора таймера
+let editDeleteTimeout;
+
+const deleteItemConfirmed = async () => {
   dialogDelete.value = false;
-  props.deleteService(selectedItem.value.id);
+  dialogLoader.value = true;
+
+  try {
+    await props.deleteService(selectedItem.value.id);
+    successDelete.value = true;
+    dialogLoader.value = false;
+
+    // Очистка предыдущего таймера (если есть)
+    clearTimeout(editDeleteTimeout);
+    editDeleteTimeout = setTimeout(() => {
+      successDelete.value = false;
+    }, 5000);
+  } catch (error) {
+    console.error("Ошибка при удалении записи:", error);
+    successDelete.value = false;
+    dialogLoader.value = false;
+  }
 };
 
 const validateForm = () => {
