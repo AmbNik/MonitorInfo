@@ -7,6 +7,8 @@
         :isLoading="isLoading"
         :addService="addService"
         :updateService="updateService"
+        :deleteService="deleteService"
+        :error="error"
       />
     </v-container>
   </v-main>
@@ -25,7 +27,11 @@ const { isLoading, error } = toRefs(servicesStore);
 const data = computed(() => servicesStore.data?.data || []);
 
 onMounted(async () => {
-  await servicesStore.getServices();
+  try {
+    await servicesStore.getServices();
+  } catch (e) {
+    console.error("Ошибка при получения сервиса:", e);
+  }
   // Debugging: log items to check if they are populated
   console.log(data.value);
 });
@@ -38,18 +44,27 @@ const addService = async (newService) => {
   console.log("newService", newService);
   try {
     await servicesStore.addServices(newService);
-    await servicesStore.getServices(); // Перезагрузите список сервисов
+    await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
   }
 };
 
-const updateService = async (id, selectedItem) => {
+const updateService = async (selectedItem) => {
   try {
-    await servicesStore.updateService(id, selectedItem);
-    await servicesStore.getServices(); // Перезагрузите список сервисов
+    await servicesStore.updateService(selectedItem.id, selectedItem);
+    await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при редактирования сервиса:", e);
+  }
+};
+
+const deleteService = async (id) => {
+  try {
+    await servicesStore.deleteService(id);
+    await servicesStore.getServices();
+  } catch (e) {
+    console.error("Ошибка при удалении сервиса:", e);
   }
 };
 </script>

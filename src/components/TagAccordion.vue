@@ -1,8 +1,12 @@
 <template>
+  <v-alert v-if="props.error" title="Ошибка сервера" type="error">{{
+    props.error.message
+  }}</v-alert>
+
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
   <v-skeleton-loader v-if="isLoading" type="article"></v-skeleton-loader>
-  <v-expansion-panels v-else v-model="panel" multiple>
+  <v-expansion-panels v-else-if="!props.error" v-model="panel" multiple>
     <v-expansion-panel v-for="tag in uniqueTags" :key="tag">
       <v-expansion-panel-title>
         <h2>{{ tag }}</h2></v-expansion-panel-title
@@ -315,8 +319,13 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  error: {
+    type: [String, Object], // Указываем, что это может быть строка или объект
+    default: "", // Устанавливаем значение по умолчанию для не обязательного пропса
+  },
 });
 
+// console.log("props.error", props.error);
 const panel = ref([]);
 const dialogInfo = ref(false);
 const dialogEdit = ref(false);

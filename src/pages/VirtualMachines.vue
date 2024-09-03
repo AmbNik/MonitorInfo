@@ -29,10 +29,6 @@ onMounted(async () => {
   console.log(data.value);
 });
 
-const test = () => {
-  console.log("test");
-};
-
 const addService = async (newService) => {
   console.log("newService", newService);
   try {

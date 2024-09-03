@@ -16,8 +16,10 @@ export const useServicesStore = defineStore("services", () => {
     isLoading.value = false;
     data.value = items;
   };
-  const getServicesFailure = () => {
+
+  const getServicesFailure = (errors: any) => {
     isLoading.value = false;
+    error.value = errors;
   };
 
   const getServices = async (): Promise<any> => {
@@ -27,7 +29,8 @@ export const useServicesStore = defineStore("services", () => {
       getServicesSuccess(services);
       return services;
     } catch (errors: any) {
-      getServicesFailure();
+      getServicesFailure(errors);
+
       throw errors;
     }
   };
@@ -39,8 +42,9 @@ export const useServicesStore = defineStore("services", () => {
   const ServicesSuccess = () => {
     isLoading.value = false;
   };
-  const ServicesFailure = () => {
+  const ServicesFailure = (errors: any) => {
     isLoading.value = false;
+    error.value = errors;
   };
 
   const addServices = async (serviceData: any): Promise<any> => {
@@ -49,7 +53,7 @@ export const useServicesStore = defineStore("services", () => {
       await servicesApi.addService(serviceData);
       ServicesSuccess();
     } catch (errors: any) {
-      getServicesFailure();
+      getServicesFailure(errors);
       throw errors;
     }
   };
@@ -60,7 +64,7 @@ export const useServicesStore = defineStore("services", () => {
       await servicesApi.updateService(id, selectedItem);
       ServicesSuccess();
     } catch (errors: any) {
-      ServicesFailure();
+      ServicesFailure(errors);
       throw errors;
     }
   };
@@ -71,7 +75,7 @@ export const useServicesStore = defineStore("services", () => {
       await servicesApi.deleteService(id);
       ServicesSuccess();
     } catch (errors: any) {
-      ServicesFailure();
+      ServicesFailure(errors);
       throw errors;
     }
   };
