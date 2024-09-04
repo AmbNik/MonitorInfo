@@ -1,4 +1,28 @@
 <template>
+  <v-col
+    v-if="!isLoading && !props.items.length"
+    md="5"
+    lg="4"
+    xl="2"
+    class="align-center justify-center"
+    @click="openAddDialog(tag)"
+  >
+    <v-hover>
+      <template v-slot:default="{ isHovering, props }">
+        <v-card
+          height="120px"
+          v-bind="props"
+          :color="
+            isHovering ? 'green-lighten-2 border-opacity-0 ' : 'transparent'
+          "
+          border="dashed thin"
+          class="d-flex align-center justify-center border-lg border-opacity-10"
+        >
+          <v-icon size="x-large" style="font-size: 50px">mdi-plus</v-icon>
+        </v-card>
+      </template>
+    </v-hover>
+  </v-col>
   <v-alert
     v-if="props.error"
     title="Ошибка сервера"
@@ -435,18 +459,34 @@ const togglePasswordVisibility = () => {
 
 const uniqueTags = computed(() => {
   const tags = new Set();
+  let hasNoTag = false;
+
   props.items.forEach((item) => {
     if (item.tags) {
-      tags.add(item.tags);
+      if (item.tags === null || item.tags === undefined) {
+        hasNoTag = true;
+      } else {
+        tags.add(item.tags);
+      }
+    } else {
+      hasNoTag = true;
     }
   });
+
   // Преобразуем Set в массив и сортируем по алфавиту
-  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  if (hasNoTag) {
+    sortedTags.push("Без тега");
+  }
+
+  return sortedTags;
 });
 
 const filteredItems = (tag) => {
+  if (tag == "Без тега") tag = null;
   return props.items.filter((item) => item.tags === tag);
 };
+
 const resetSuccessFlags = async () => {
   successDelete.value = false;
   successEdit.value = false;
@@ -479,9 +519,10 @@ const resetNewItem = () => {
   newItem.value = { ...props.newItem };
 };
 
-const openAddDialog = (tag) => {
+const openAddDialog = (tag = null) => {
   resetSuccessFlags();
   resetNewItem();
+  if (tag == "Без тега") tag = null;
   newItem.value.tags = tag;
 
   dialogAdd.value = true;

@@ -68,23 +68,6 @@ const resetNewItem = () => {
   };
 };
 
-// Функция для проверки валидности формы
-const validateForm = () => {
-  return (
-    newItem.value.name &&
-    newItem.value.url &&
-    /https?:\/\/\S+\.\S+/g.test(newItem.value.url) &&
-    newItem.value.login &&
-    newItem.value.password
-  );
-};
-
-// Вычисляемое свойство для проверки валидности формы
-const isFormValid = computed(() => {
-  validateForm();
-  console.log(newItem.value);
-});
-
 onMounted(async () => {
   try {
     await servicesStore.getServices();
@@ -95,10 +78,6 @@ onMounted(async () => {
   // Debugging: log items to check if they are populated
   console.log(data.value);
 });
-
-const test = () => {
-  console.log("test");
-};
 
 const addService = async (newService) => {
   console.log("newService", newService);
