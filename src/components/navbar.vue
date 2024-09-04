@@ -23,7 +23,16 @@
       <v-toolbar-title>Мое приложение</v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- Search component -->
-      <SearchBar v-model:searchQuery="searchQuery" />
+      <v-text-field
+        v-model="searchQuery"
+        label="Поиск"
+        single-line
+        hide-details
+        Append
+      ></v-text-field>
+      <template v-slot:append>
+        <v-btn icon="mdi-magnify"></v-btn>
+      </template>
     </v-app-bar>
 
     <!-- Main content -->

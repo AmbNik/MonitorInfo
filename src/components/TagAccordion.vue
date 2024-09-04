@@ -56,6 +56,17 @@
 
   <v-sheet class="d-flex flex-column">
     <v-snackbar
+      v-model="copyInfo"
+      color="blue-darken-3"
+      class="align-start pt-10"
+    >
+      <p class="text-h5">
+        Скопирован <strong>{{ copyText }}</strong> в буфер обмена
+      </p>
+    </v-snackbar>
+  </v-sheet>
+  <v-sheet class="d-flex flex-column">
+    <v-snackbar
       v-model="successAdd"
       color="green-darken-1"
       class="align-start pt-10"
@@ -168,8 +179,26 @@
       <v-card-subtitle>{{ props.selectedItem?.url }}</v-card-subtitle>
       <v-card-text>
         <p><strong>Описание:</strong> {{ props.selectedItem?.description }}</p>
-        <p><strong>Логин:</strong> {{ props.selectedItem?.login }}</p>
-        <p><strong>Пароль:</strong> {{ props.selectedItem?.password }}</p>
+        <p>
+          <strong>Логин:</strong>
+          {{ props.selectedItem?.login }}
+          <v-icon
+            @click="copyToClipboard(props.selectedItem?.login)"
+            class="ml-2 small-icon"
+          >
+            mdi-content-copy
+          </v-icon>
+        </p>
+        <p>
+          <strong>Пароль:</strong>
+          {{ props.selectedItem?.password }}
+          <v-icon
+            @click="copyToClipboard(props.selectedItem?.password)"
+            class="ml-2 small-icon"
+          >
+            mdi-content-copy
+          </v-icon>
+        </p>
         <p><strong>Теги:</strong> {{ props.selectedItem?.tags }}</p>
         <p>
           <strong>Виртуальная машина:</strong>
@@ -384,6 +413,7 @@
 
 <script setup>
 import { ref, computed, nextTick, defineEmits } from "vue";
+import { useClipboard } from "@vueuse/core";
 
 const emit = defineEmits(["update-selected-item", "update-new-item"]);
 
@@ -429,6 +459,19 @@ const successEdit = ref(false);
 const successAdd = ref(false);
 const dialogLoader = ref(false);
 const dialog = ref(true);
+
+const copyInfo = ref(false);
+const copyText = ref("");
+
+const { copy } = useClipboard();
+
+const copyToClipboard = (text) => {
+  if (text) {
+    copy(text);
+    copyText.value = text;
+    copyInfo.value = true;
+  }
+};
 
 const virtualMachineOptions = ref([
   { text: "abakushka", value: 2 },
@@ -608,6 +651,9 @@ const validateForm = (item) => {
 </script>
 
 <style>
+.small-icon {
+  font-size: 20px; /* Уменьшите значение по вашему усмотрению */
+}
 .my-2 {
   margin: 8px 0;
 }

@@ -44,6 +44,18 @@
 
   <v-sheet class="d-flex flex-column">
     <v-snackbar
+      v-model="copyInfo"
+      color="blue-darken-3"
+      class="align-start pt-10"
+    >
+      <p class="text-h5">
+        Скопирован <strong>{{ copyText }}</strong> в буфер обмена
+      </p>
+    </v-snackbar>
+  </v-sheet>
+
+  <v-sheet class="d-flex flex-column">
+    <v-snackbar
       v-model="successDelete"
       color="green-darken-1"
       class="align-start pt-10"
@@ -168,8 +180,26 @@
       <v-card-subtitle>{{ props.selectedItem?.id }}</v-card-subtitle>
       <v-card-text>
         <p><strong>ip:</strong> {{ props.selectedItem?.ip }}</p>
-        <p><strong>Логин:</strong> {{ props.selectedItem?.login }}</p>
-        <p><strong>Пароль:</strong> {{ props.selectedItem?.password }}</p>
+        <p>
+          <strong>Логин:</strong>
+          {{ props.selectedItem?.login }}
+          <v-icon
+            @click="copyToClipboard(props.selectedItem?.login)"
+            class="ml-2 small-icon"
+          >
+            mdi-content-copy
+          </v-icon>
+        </p>
+        <p>
+          <strong>Пароль:</strong>
+          {{ props.selectedItem?.password }}
+          <v-icon
+            @click="copyToClipboard(props.selectedItem?.password)"
+            class="ml-2 small-icon"
+          >
+            mdi-content-copy
+          </v-icon>
+        </p>
         <p><strong>Теги:</strong> {{ props.selectedItem?.tags }}</p>
       </v-card-text>
       <v-card-actions>
@@ -331,6 +361,7 @@
 
 <script setup>
 import { ref, computed, nextTick, defineEmits } from "vue";
+import { useClipboard } from "@vueuse/core";
 
 const emit = defineEmits(["update-selected-item", "update-new-item"]);
 
@@ -364,6 +395,19 @@ const props = defineProps({
 });
 
 const newItem = ref(props.newItem);
+
+const copyInfo = ref(false);
+const copyText = ref("");
+
+const { copy } = useClipboard();
+
+const copyToClipboard = (text) => {
+  if (text) {
+    copy(text);
+    copyText.value = text;
+    copyInfo.value = true;
+  }
+};
 
 // console.log("props.error", props.error);
 const panel = ref([]);
@@ -555,6 +599,9 @@ const validateForm = (item) => {
 </script>
 
 <style>
+.small-icon {
+  font-size: 20px; /* Уменьшите значение по вашему усмотрению */
+}
 .my-2 {
   margin: 8px 0;
 }
