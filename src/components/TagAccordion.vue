@@ -392,6 +392,8 @@ const props = defineProps({
   newItem: { type: Object, required: true },
 });
 
+const newItem = ref(props.newItem);
+
 // console.log("props.error", props.error);
 const panel = ref([]);
 const dialogInfo = ref(false);
@@ -474,22 +476,24 @@ const openDeleteDialog = (item) => {
 };
 
 const resetNewItem = () => {
-  emit("update-new-item");
+  newItem.value = { ...props.newItem };
 };
 
 const openAddDialog = (tag) => {
   resetSuccessFlags();
   resetNewItem();
-  props.newItem.tags = tag;
+  newItem.value.tags = tag;
+
   dialogAdd.value = true;
 };
 
 const addItem = async () => {
+  console.log("222newItem", newItem.value);
   dialogAdd.value = false;
   dialogLoader.value = true;
   successAdd.value = false;
   try {
-    await props.addService(props.newItem);
+    await props.addService(newItem.value);
     successAdd.value = true;
     dialogLoader.value = false;
     setTimeout(() => {
@@ -552,13 +556,12 @@ const deleteItemConfirmed = async () => {
 };
 
 const validateForm = (item) => {
-  // Проверяем все поля формы и возвращаем true, если они валидны
   return (
-    item.name &&
-    item.url &&
-    /https?:\/\/\S+\.\S+/g.test(item.url) &&
-    item.login &&
-    item.password
+    item.name.trim() !== "" && // Проверка, что name не пустое
+    item.url.trim() !== "" && // Проверка, что url не пустое
+    /https?:\/\/\S+\.\S+/g.test(item.url) && // Проверка формата URL
+    item.login.trim() !== "" && // Проверка, что login не пустой
+    item.password.trim() !== "" // Проверка, что password не пустой
   );
 };
 </script>

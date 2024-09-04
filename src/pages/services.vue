@@ -1,7 +1,6 @@
 <template>
   <v-main style="margin-top: 100px">
     <v-container>
-      newItem {{ newItem }}
       <h1>Сервисы</h1>
       <TagAccordion
         :items="data"
