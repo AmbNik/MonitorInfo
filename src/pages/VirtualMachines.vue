@@ -2,10 +2,112 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Виртуальные машины</h1>
+      <TagAccordionVirtualMachines
+        :items="data"
+        :isLoading="isLoading"
+        :addService="addVirtualMachines"
+        :updateService="updateVirtualMachines"
+        :deleteService="deleteVirtualMachines"
+        :error="error"
+        :selectedItem="selectedItem"
+        :newItem="newItem"
+        @update-selected-item="updateSelectedItem"
+        @update-new-item="resetNewItem"
+      />
     </v-container>
   </v-main>
 </template>
-<script setup></script>
+<script setup>
+import { ref, computed, onMounted, toRefs } from "vue";
+import { useRouter } from "vue-router";
+import { useVirtualMachinesStore } from "@/stores/virtualmachines";
+
+const router = useRouter();
+
+const virtualMachinesStore = useVirtualMachinesStore();
+
+const { isLoading, error } = toRefs(virtualMachinesStore);
+// Use `data.data` to get items from servicesStore
+const data = computed(() => virtualMachinesStore.data?.data || []);
+
+const selectedItem = ref({
+  id: "",
+  name: "",
+  ip: "",
+  login: "",
+  password: "",
+  tags: "",
+});
+
+const newItem = ref({
+  id: "",
+  name: "",
+  ip: "",
+  login: "",
+  password: "",
+  tags: "",
+});
+
+const updateSelectedItem = (item) => {
+  selectedItem.value = item;
+};
+
+const resetNewItem = () => {
+  newItem.value = {
+    id: "",
+    name: "",
+    ip: "",
+    login: "",
+    password: "",
+    tags: "",
+  };
+};
+
+onMounted(async () => {
+  try {
+    await virtualMachinesStore.getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при получения сервиса:", e);
+    throw e;
+  }
+  // Debugging: log items to check if they are populated
+  console.log(data.value);
+});
+
+const addVirtualMachines = async (newVirtualMachines) => {
+  console.log("newVirtualMachines", newVirtualMachines);
+  try {
+    await virtualMachinesStore.addVirtualMachines(newVirtualMachines);
+    await virtualMachinesStore.getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при добавлении сервиса:", e);
+    throw e;
+  }
+};
+
+const updateVirtualMachines = async (selectedItem) => {
+  try {
+    await virtualMachinesStore.updateVirtualMachines(
+      selectedItem.id,
+      selectedItem
+    );
+    await virtualMachinesStore.getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при редактирования сервиса:", e);
+    throw e;
+  }
+};
+
+const deleteVirtualMachines = async (id) => {
+  try {
+    await virtualMachinesStore.deleteVirtualMachines(id);
+    await virtualMachinesStore.getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при удалении сервиса:", e);
+    throw e;
+  }
+};
+</script>
 
 <style>
 .my-2 {

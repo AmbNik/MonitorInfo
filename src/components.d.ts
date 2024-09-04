@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddServicesForm: typeof import('./components/form/AddServicesForm.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
+    copy: typeof import('./components/TagAccordion copy.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     Navbar: typeof import('./components/navbar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -16,5 +17,6 @@ declare module 'vue' {
     SearchBar: typeof import('./components/SearchBar.vue')['default']
     ServicesFormComponent: typeof import('./components/form/ServicesFormComponent.vue')['default']
     TagAccordion: typeof import('./components/TagAccordion.vue')['default']
+    TagAccordionVirtualMachines: typeof import('./components/TagAccordionVirtualMachines.vue')['default']
   }
 }

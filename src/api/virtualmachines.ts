@@ -1,23 +1,23 @@
 import axios from "@/api/axios";
 
-const getVirtualmachines = () => {
+const getVirtualMachines = () => {
   return axios.get(`/virtualmachines/`);
 };
 
-const addVirtualmachines = (virtualMachinesData: any) => {
+const addVirtualMachines = (virtualMachinesData: any) => {
   return axios.post(`/virtualmachines/`, virtualMachinesData);
 };
-const updateVirtualmachines = (id: any, virtualMachinesData: any) => {
+const updateVirtualMachines = (id: any, virtualMachinesData: any) => {
   return axios.put(`/virtualmachines/${id}/`, virtualMachinesData);
 };
 
-const deleteVirtualmachines = (id: any) => {
+const deleteVirtualMachines = (id: any) => {
   return axios.delete(`/virtualmachines/${id}/`);
 };
 
 export default {
-  getVirtualmachines,
-  addVirtualmachines,
-  updateVirtualmachines,
-  deleteVirtualmachines,
+  getVirtualMachines,
+  addVirtualMachines,
+  updateVirtualMachines,
+  deleteVirtualMachines,
 };

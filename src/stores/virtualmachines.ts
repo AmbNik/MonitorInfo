@@ -2,96 +2,96 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import virtualMachinesApi from "@/api/virtualmachines";
 
-export const useVirtualmachinesStore = defineStore("virtualmachines", () => {
+export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
   const isLoading = ref<boolean>(false);
   const data = ref<any | null>(null);
   const error = ref<null>(null);
 
-  const getVirtualmachinesStart = () => {
+  const getVirtualMachinesStart = () => {
     isLoading.value = true;
     data.value = null;
   };
 
-  const getVirtualmachinesSuccess = (items: any) => {
+  const getVirtualMachinesSuccess = (items: any) => {
     isLoading.value = false;
     data.value = items;
   };
-  const getVirtualmachinesFailure = () => {
+  const getVirtualMachinesFailure = () => {
     isLoading.value = false;
   };
 
-  const getVirtualmachines = async (): Promise<any> => {
+  const getVirtualMachines = async (): Promise<any> => {
     try {
-      getVirtualmachinesStart();
-      const services = await virtualMachinesApi.getVirtualmachines();
-      getVirtualmachinesSuccess(services);
+      getVirtualMachinesStart();
+      const services = await virtualMachinesApi.getVirtualMachines();
+      getVirtualMachinesSuccess(services);
       return services;
     } catch (errors: any) {
-      getVirtualmachinesFailure();
+      getVirtualMachinesFailure();
       throw errors;
     }
   };
 
-  const VirtualmachinesStart = () => {
+  const VirtualMachinesStart = () => {
     isLoading.value = true;
   };
 
-  const VirtualmachinesSuccess = () => {
+  const VirtualMachinesSuccess = () => {
     isLoading.value = false;
   };
-  const VirtualmachinesFailure = () => {
+  const VirtualMachinesFailure = () => {
     isLoading.value = false;
   };
 
-  const addVirtualmachines = async (VirtualmachinesData: any): Promise<any> => {
+  const addVirtualMachines = async (VirtualMachinesData: any): Promise<any> => {
     try {
-      VirtualmachinesStart();
-      await virtualMachinesApi.addVirtualmachines(VirtualmachinesData);
-      VirtualmachinesSuccess();
+      VirtualMachinesStart();
+      await virtualMachinesApi.addVirtualMachines(VirtualMachinesData);
+      VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualmachinesFailure();
+      VirtualMachinesFailure();
       throw errors;
     }
   };
 
-  const updateVirtualmachines = async (
+  const updateVirtualMachines = async (
     id: any,
-    VirtualmachinesData: any
+    VirtualMachinesData: any
   ): Promise<any> => {
     try {
-      VirtualmachinesStart();
-      await virtualMachinesApi.updateVirtualmachines(id, VirtualmachinesData);
-      VirtualmachinesSuccess();
+      VirtualMachinesStart();
+      await virtualMachinesApi.updateVirtualMachines(id, VirtualMachinesData);
+      VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualmachinesFailure();
+      VirtualMachinesFailure();
       throw errors;
     }
   };
 
-  const deleteVirtualmachines = async (id: any): Promise<any> => {
+  const deleteVirtualMachines = async (id: any): Promise<any> => {
     try {
-      VirtualmachinesStart();
-      await virtualMachinesApi.deleteVirtualmachines(id);
-      VirtualmachinesSuccess();
+      VirtualMachinesStart();
+      await virtualMachinesApi.deleteVirtualMachines(id);
+      VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualmachinesFailure();
+      VirtualMachinesFailure();
       throw errors;
     }
   };
 
   return {
     data,
-    getVirtualmachines,
+    getVirtualMachines,
     isLoading,
     error,
-    getVirtualmachinesStart,
-    getVirtualmachinesSuccess,
-    getVirtualmachinesFailure,
-    addVirtualmachines,
-    VirtualmachinesStart,
-    VirtualmachinesSuccess,
-    VirtualmachinesFailure,
-    updateVirtualmachines,
-    deleteVirtualmachines,
+    getVirtualMachinesStart,
+    getVirtualMachinesSuccess,
+    getVirtualMachinesFailure,
+    addVirtualMachines,
+    VirtualMachinesStart,
+    VirtualMachinesSuccess,
+    VirtualMachinesFailure,
+    updateVirtualMachines,
+    deleteVirtualMachines,
   };
 });
