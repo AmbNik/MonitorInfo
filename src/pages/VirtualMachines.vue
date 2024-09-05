@@ -11,6 +11,8 @@
         :error="error"
         :selectedItem="selectedItem"
         :newItem="newItem"
+        :validateForm="validateForm"
+        :validationRules="validationRules"
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
       />
@@ -106,6 +108,38 @@ const deleteVirtualMachines = async (id) => {
     console.error("Ошибка при удалении сервиса:", e);
     throw e;
   }
+};
+
+// Функция для проверки IPv4
+const isValidIPv4 = (ip) => {
+  const ipv4Regex =
+    /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
+  return ipv4Regex.test(ip);
+};
+
+const validateForm = (item) => {
+  const ipRegex =
+    /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
+
+  // Проверка всех полей
+  return (
+    item.name.trim() !== "" &&
+    item.ip.trim() !== "" &&
+    ipRegex.test(item.ip) &&
+    item.login.trim() !== "" &&
+    item.password.trim() !== ""
+  );
+};
+
+const validationRules = {
+  name: (v) => !!v || "name обязательно",
+  ip: [
+    (v) => !!v || "IP-адрес обязателен",
+    (v) =>
+      isValidIPv4(v) || "Некорректный IP-адрес IPv4. Например, 192.168.200.57",
+  ],
+  login: (v) => !!v || "login обязательно",
+  password: (v) => !!v || "password обязательно",
 };
 </script>
 

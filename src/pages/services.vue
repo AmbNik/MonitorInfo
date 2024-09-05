@@ -5,13 +5,15 @@
       <TagAccordion
         :items="data"
         :isLoading="isLoading"
+        :virtualMachines="virtualMachineNames"
         :addService="addService"
         :updateService="updateService"
         :deleteService="deleteService"
         :error="error"
         :selectedItem="selectedItem"
         :newItem="newItem"
-        :isFormValid="isFormValid"
+        :validateForm="validateForm"
+        :validationRules="validationRules"
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
       />
@@ -22,10 +24,27 @@
 import { ref, computed, onMounted, toRefs } from "vue";
 import { useRouter } from "vue-router";
 import { useServicesStore } from "@/stores/services";
+import { useVirtualMachinesStore } from "@/stores/virtualmachines";
 
 const router = useRouter();
 
 const servicesStore = useServicesStore();
+const virtualMachinesStore = useVirtualMachinesStore();
+onMounted(async () => {
+  try {
+    await virtualMachinesStore.getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при получения сервиса:", e);
+    throw e;
+  }
+  // Debugging: log items to check if they are populated
+  console.log(data.value);
+});
+const virtualMachines = computed(() => virtualMachinesStore.data?.data || []);
+// Вычисляемое свойство для списка виртуальных машин
+const virtualMachineNames = computed(
+  () => virtualMachinesStore.data?.data.map((vm) => vm.name) || []
+);
 
 const { isLoading, error } = toRefs(servicesStore);
 // Use `data.data` to get items from servicesStore
@@ -39,7 +58,7 @@ const selectedItem = ref({
   login: "",
   password: "",
   tags: "",
-  virtual_machine: null,
+  virtual_machine: "",
 });
 
 const newItem = ref({
@@ -49,7 +68,7 @@ const newItem = ref({
   login: "",
   password: "",
   tags: "",
-  virtual_machine: null,
+  virtual_machine: "",
 });
 
 const updateSelectedItem = (item) => {
@@ -64,7 +83,7 @@ const resetNewItem = () => {
     login: "",
     password: "",
     tags: "",
-    virtual_machine: null,
+    virtual_machine: "",
   };
 };
 
@@ -91,6 +110,7 @@ const addService = async (newService) => {
 };
 
 const updateService = async (selectedItem) => {
+  console.log("33selectedItem", selectedItem);
   try {
     await servicesStore.updateService(selectedItem.id, selectedItem);
     await servicesStore.getServices();
@@ -108,6 +128,31 @@ const deleteService = async (id) => {
     console.error("Ошибка при удалении сервиса:", e);
     throw e;
   }
+};
+
+// Функция валидации формы
+const validateForm = (item) => {
+  return (
+    item.name.trim() !== "" &&
+    item.url.trim() !== "" &&
+    /^https?:\/\/\S+\.\S+/g.test(item.url) &&
+    item.login.trim() !== "" &&
+    item.password.trim() !== "" &&
+    item.virtual_machine.trim() !== ""
+  );
+};
+
+// Определите правила валидации
+const validationRules = {
+  name: (v) => !!v || "name обязательно",
+  login: (v) => !!v || "login обязательно",
+  password: (v) => !!v || "password обязательно",
+  url: [
+    (v) => !!v || "URL обязателен",
+    (v) =>
+      /^https?:\/\/\S+\.\S+/g.test(v) ||
+      "Некорректный формат URL. Например, https://example.com",
+  ],
 };
 </script>
 

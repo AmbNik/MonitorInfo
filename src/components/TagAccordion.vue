@@ -1,6 +1,6 @@
 <template>
   <v-col
-    v-if="!isLoading && !props.items.length"
+    v-if="!isLoading && !props.items.length && !props.error"
     md="5"
     lg="4"
     xl="2"
@@ -136,7 +136,14 @@
                       <v-col class="text-truncate" style="max-width: 350px">
                         {{ item.name }}
                       </v-col>
-
+                      <v-icon
+                        @click.stop="openLink(item.url)"
+                        class="ml-2"
+                        small
+                        style="cursor: pointer"
+                      >
+                        mdi-open-in-new
+                      </v-icon>
                       <v-menu>
                         <template v-slot:activator="{ props }">
                           <v-btn
@@ -236,7 +243,7 @@
         <v-text-field
           label="Название"
           v-model="props.selectedItem.name"
-          :rules="[(v) => !!v || 'Название обязательно']"
+          :rules="[validationRules.name]"
           required
           class="mb-4"
           dense
@@ -244,12 +251,7 @@
         <v-text-field
           label="URL"
           v-model="props.selectedItem.url"
-          :rules="[
-            (v) => !!v || 'URL обязателен',
-            (v) =>
-              /https?:\/\/\S+\.\S+/g.test(v) ||
-              'Некорректный формат URL. Например, https://example.com',
-          ]"
+          :rules="validationRules.url"
           required
           class="mb-4"
         ></v-text-field>
@@ -262,7 +264,7 @@
         <v-text-field
           label="Логин"
           v-model="props.selectedItem.login"
-          :rules="[(v) => !!v || 'Логин обязательно']"
+          :rules="[validationRules.login]"
           dense
           required
           class="mb-4"
@@ -272,7 +274,7 @@
           required
           v-model="props.selectedItem.password"
           :type="passwordVisible ? 'text' : 'password'"
-          :rules="[(v) => !!v || 'Пароль обязательно']"
+          :rules="[validationRules.password]"
           dense
           class="mb-4"
         >
@@ -288,12 +290,12 @@
         <v-combobox
           label="Теги"
           v-model="props.selectedItem.tags"
-          :items="uniqueTags"
+          :items="uniqueTagsListModal"
         ></v-combobox>
         <v-select
           label="Виртуальная машина"
           v-model="props.selectedItem.virtual_machine"
-          :items="virtualMachineOptions"
+          :items="virtualMachines"
           item-value="value"
           item-title="text"
           dense
@@ -322,7 +324,7 @@
         <v-text-field
           label="Название"
           v-model="newItem.name"
-          :rules="[(v) => !!v || 'Название обязательно']"
+          :rules="[validationRules.name]"
           required
           class="mb-4"
           dense
@@ -330,12 +332,7 @@
         <v-text-field
           label="URL"
           v-model="newItem.url"
-          :rules="[
-            (v) => !!v || 'URL обязателен',
-            (v) =>
-              /https?:\/\/\S+\.\S+/g.test(v) ||
-              'Некорректный формат URL. Например, https://example.com',
-          ]"
+          :rules="validationRules.url"
           required
           class="mb-4"
         ></v-text-field>
@@ -348,7 +345,7 @@
         <v-text-field
           label="Логин"
           v-model="newItem.login"
-          :rules="[(v) => !!v || 'Логин обязательно']"
+          :rules="[validationRules.login]"
           dense
           required
           class="mb-4"
@@ -358,7 +355,7 @@
           required
           v-model="newItem.password"
           :type="passwordVisible ? 'text' : 'password'"
-          :rules="[(v) => !!v || 'Пароль обязательно']"
+          :rules="[validationRules.password]"
           dense
           class="mb-4"
         >
@@ -374,12 +371,12 @@
         <v-combobox
           label="Теги"
           v-model="newItem.tags"
-          :items="uniqueTags"
+          :items="uniqueTagsListModal"
         ></v-combobox>
         <v-select
           label="Виртуальная машина"
           v-model="newItem.virtual_machine"
-          :items="virtualMachineOptions"
+          :items="virtualMachines"
           item-value="value"
           item-title="text"
           dense
@@ -444,6 +441,12 @@ const props = defineProps({
   },
   selectedItem: { type: Object, required: true },
   newItem: { type: Object, required: true },
+  virtualMachines: { type: Object, required: true },
+  validateForm: { type: Function, required: true },
+  validationRules: {
+    type: Object,
+    required: true,
+  },
 });
 
 const newItem = ref(props.newItem);
@@ -473,6 +476,12 @@ const copyToClipboard = (text) => {
   }
 };
 
+const openLink = (url) => {
+  if (url) {
+    window.open(url, "_blank"); // Открывает ссылку в новой вкладке
+  }
+};
+
 const virtualMachineOptions = ref([
   { text: "abakushka", value: 2 },
   { text: "Dinner", value: 3 },
@@ -499,6 +508,17 @@ const passwordVisible = ref(false);
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
+
+const uniqueTagsListModal = computed(() => {
+  const tags = new Set();
+
+  props.items.forEach((item) => {
+    if (item.tags !== null) tags.add(item.tags);
+  });
+
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  return sortedTags;
+});
 
 const uniqueTags = computed(() => {
   const tags = new Set();
@@ -547,7 +567,10 @@ const openDialogInfo = (item) => {
 const openEditDialog = (item) => {
   resetSuccessFlags();
   emit("update-selected-item", item);
-  console.log("props.selectedItem:", props.selectedItem);
+  console.log(
+    "props.selectedItem перед открытием редактирования:",
+    props.selectedItem
+  );
 
   dialogEdit.value = true;
 };
@@ -593,12 +616,14 @@ const addItem = async () => {
 let editItemTimeout;
 
 const editItem = async () => {
+  console.log("111props.selectedItem", props.selectedItem);
   dialogEdit.value = false;
   dialogLoader.value = true;
   successEdit.value = false;
 
   try {
     await props.updateService(props.selectedItem);
+    const response = await props.updateService(props.selectedItem);
     successEdit.value = true;
     dialogLoader.value = false;
 
@@ -637,16 +662,6 @@ const deleteItemConfirmed = async () => {
     successDelete.value = false;
     dialogLoader.value = false;
   }
-};
-
-const validateForm = (item) => {
-  return (
-    item.name.trim() !== "" && // Проверка, что name не пустое
-    item.url.trim() !== "" && // Проверка, что url не пустое
-    /https?:\/\/\S+\.\S+/g.test(item.url) && // Проверка формата URL
-    item.login.trim() !== "" && // Проверка, что login не пустой
-    item.password.trim() !== "" // Проверка, что password не пустой
-  );
 };
 </script>
 

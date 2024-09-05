@@ -233,7 +233,7 @@
         <v-text-field
           label="Название"
           v-model="props.selectedItem.name"
-          :rules="[(v) => !!v || 'Название обязательно']"
+          :rules="[validationRules.name]"
           required
           class="mb-4"
           dense
@@ -241,13 +241,14 @@
         <v-text-field
           label="URL"
           v-model="props.selectedItem.ip"
+          :rules="validationRules.ip"
           required
           class="mb-4"
         ></v-text-field>
         <v-text-field
           label="Логин"
           v-model="props.selectedItem.login"
-          :rules="[(v) => !!v || 'Логин обязательно']"
+          :rules="[validationRules.login]"
           dense
           required
           class="mb-4"
@@ -257,7 +258,7 @@
           required
           v-model="props.selectedItem.password"
           :type="passwordVisible ? 'text' : 'password'"
-          :rules="[(v) => !!v || 'Пароль обязательно']"
+          :rules="[validationRules.password]"
           dense
           class="mb-4"
         >
@@ -273,11 +274,16 @@
         <v-combobox
           label="Теги"
           v-model="props.selectedItem.tags"
-          :items="uniqueTags"
+          :items="uniqueTagsListModal"
         ></v-combobox>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="editItem()">Сохранить</v-btn>
+        <v-btn
+          text
+          @click="editItem()"
+          :disabled="!validateForm(props.selectedItem)"
+          >Сохранить</v-btn
+        >
         <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
@@ -293,7 +299,7 @@
         <v-text-field
           label="Название"
           v-model="newItem.name"
-          :rules="[(v) => !!v || 'Название обязательно']"
+          :rules="[validationRules.name]"
           required
           class="mb-4"
           dense
@@ -301,13 +307,14 @@
         <v-text-field
           label="ip"
           v-model="newItem.ip"
+          :rules="validationRules.ip"
           required
           class="mb-4"
         ></v-text-field>
         <v-text-field
           label="Логин"
           v-model="newItem.login"
-          :rules="[(v) => !!v || 'Логин обязательно']"
+          :rules="[validationRules.login]"
           dense
           required
           class="mb-4"
@@ -317,7 +324,7 @@
           required
           v-model="newItem.password"
           :type="passwordVisible ? 'text' : 'password'"
-          :rules="[(v) => !!v || 'Пароль обязательно']"
+          :rules="[validationRules.password]"
           dense
           class="mb-4"
         >
@@ -333,11 +340,13 @@
         <v-combobox
           label="Теги"
           v-model="newItem.tags"
-          :items="uniqueTags"
+          :items="uniqueTagsListModal"
         ></v-combobox>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="addItem">Добавить</v-btn>
+        <v-btn text @click="addItem" :disabled="!validateForm(newItem)"
+          >Добавить</v-btn
+        >
         <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
@@ -392,6 +401,11 @@ const props = defineProps({
   },
   selectedItem: { type: Object, required: true },
   newItem: { type: Object, required: true },
+  validateForm: { type: Function, required: true },
+  validationRules: {
+    type: Object,
+    required: true,
+  },
 });
 
 const newItem = ref(props.newItem);
@@ -447,6 +461,17 @@ const passwordVisible = ref(false);
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
+
+const uniqueTagsListModal = computed(() => {
+  const tags = new Set();
+
+  props.items.forEach((item) => {
+    if (item.tags !== null) tags.add(item.tags);
+  });
+
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  return sortedTags;
+});
 
 const uniqueTags = computed(() => {
   const tags = new Set();
@@ -585,16 +610,6 @@ const deleteItemConfirmed = async () => {
     successDelete.value = false;
     dialogLoader.value = false;
   }
-};
-
-const validateForm = (item) => {
-  return (
-    item.name.trim() !== "" && // Проверка, что name не пустое
-    item.url.trim() !== "" && // Проверка, что url не пустое
-    /https?:\/\/\S+\.\S+/g.test(item.url) && // Проверка формата URL
-    item.login.trim() !== "" && // Проверка, что login не пустой
-    item.password.trim() !== "" // Проверка, что password не пустой
-  );
 };
 </script>
 
