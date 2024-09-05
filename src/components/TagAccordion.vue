@@ -132,10 +132,13 @@
                   @click="openDialogInfo(item)"
                 >
                   <v-card-title>
-                    <v-row class="align-center justify-space-between">
+                    <v-row
+                      class="align-center justify-space-between justify-end"
+                    >
                       <v-col class="text-truncate" style="max-width: 350px">
                         {{ item.name }}
                       </v-col>
+                      <v-col class="d-flex justify-end"> </v-col>
                       <v-icon
                         @click.stop="openLink(item.url)"
                         class="ml-2"
@@ -144,6 +147,14 @@
                       >
                         mdi-open-in-new
                       </v-icon>
+
+                      <template v-slot:append>
+                        <v-btn icon="mdi-heart"></v-btn>
+
+                        <v-btn icon="mdi-magnify"></v-btn>
+
+                        <v-btn icon="mdi-dots-vertical"></v-btn>
+                      </template>
                       <v-menu>
                         <template v-slot:activator="{ props }">
                           <v-btn
