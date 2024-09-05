@@ -37,7 +37,7 @@
       class="align-start pt-10"
     >
       <p class="text-h5">
-        Запись <strong>{{ props.selectedItem?.name }}</strong> успешно изменена
+        Запись <strong>{{ copySelectedItem?.name }}</strong> успешно изменена
       </p>
     </v-snackbar>
   </v-sheet>
@@ -49,7 +49,7 @@
       class="align-start pt-10"
     >
       <p class="text-h5">
-        Запись <strong>{{ props.selectedItem?.name }}</strong> успешно удалена
+        Запись <strong>{{ copySelectedItem?.name }}</strong> успешно удалена
       </p>
     </v-snackbar>
   </v-sheet>
@@ -181,16 +181,16 @@
   <v-dialog v-model="dialogInfo" max-width="500">
     <v-card>
       <v-card-title>
-        <span class="headline">{{ props.selectedItem?.name }}</span>
+        <span class="headline">{{ copySelectedItem?.name }}</span>
       </v-card-title>
-      <v-card-subtitle>{{ props.selectedItem?.url }}</v-card-subtitle>
+      <v-card-subtitle>{{ copySelectedItem?.url }}</v-card-subtitle>
       <v-card-text>
-        <p><strong>Описание:</strong> {{ props.selectedItem?.description }}</p>
+        <p><strong>Описание:</strong> {{ copySelectedItem?.description }}</p>
         <p>
           <strong>Логин:</strong>
-          {{ props.selectedItem?.login }}
+          {{ copySelectedItem?.login }}
           <v-icon
-            @click="copyToClipboard(props.selectedItem?.login)"
+            @click="copyToClipboard(copySelectedItem?.login)"
             class="ml-2 small-icon"
           >
             mdi-content-copy
@@ -198,18 +198,18 @@
         </p>
         <p>
           <strong>Пароль:</strong>
-          {{ props.selectedItem?.password }}
+          {{ copySelectedItem?.password }}
           <v-icon
-            @click="copyToClipboard(props.selectedItem?.password)"
+            @click="copyToClipboard(copySelectedItem?.password)"
             class="ml-2 small-icon"
           >
             mdi-content-copy
           </v-icon>
         </p>
-        <p><strong>Теги:</strong> {{ props.selectedItem?.tags }}</p>
+        <p><strong>Теги:</strong> {{ copySelectedItem?.tags }}</p>
         <p>
           <strong>Виртуальная машина:</strong>
-          {{ props.selectedItem?.virtual_machine || "Не указана" }}
+          {{ copySelectedItem?.virtual_machine || "Не указана" }}
         </p>
       </v-card-text>
       <v-card-actions>
@@ -224,7 +224,7 @@
       <v-card-title class="headline">Удалить элемент?</v-card-title>
       <v-card-text>
         Вы уверены, что хотите удалить
-        <strong>{{ props.selectedItem?.name }}</strong
+        <strong>{{ copySelectedItem?.name }}</strong
         >? Это действие нельзя отменить.
       </v-card-text>
       <v-card-actions>
@@ -242,7 +242,7 @@
       <v-card-text>
         <v-text-field
           label="Название"
-          v-model="props.selectedItem.name"
+          v-model="copySelectedItem.name"
           :rules="[validationRules.name]"
           required
           class="mb-4"
@@ -250,20 +250,20 @@
         ></v-text-field>
         <v-text-field
           label="URL"
-          v-model="props.selectedItem.url"
+          v-model="copySelectedItem.url"
           :rules="validationRules.url"
           required
           class="mb-4"
         ></v-text-field>
         <v-textarea
           label="Описание"
-          v-model="props.selectedItem.description"
+          v-model="copySelectedItem.description"
           dense
           auto-grow
         ></v-textarea>
         <v-text-field
           label="Логин"
-          v-model="props.selectedItem.login"
+          v-model="copySelectedItem.login"
           :rules="[validationRules.login]"
           dense
           required
@@ -272,7 +272,7 @@
         <v-text-field
           label="Пароль"
           required
-          v-model="props.selectedItem.password"
+          v-model="copySelectedItem.password"
           :type="passwordVisible ? 'text' : 'password'"
           :rules="[validationRules.password]"
           dense
@@ -289,12 +289,12 @@
 
         <v-combobox
           label="Теги"
-          v-model="props.selectedItem.tags"
+          v-model="copySelectedItem.tags"
           :items="uniqueTagsListModal"
         ></v-combobox>
         <v-select
           label="Виртуальная машина"
-          v-model="props.selectedItem.virtual_machine"
+          v-model="copySelectedItem.virtual_machine"
           :items="virtualMachines"
           item-value="value"
           item-title="text"
@@ -306,7 +306,7 @@
         <v-btn
           text
           @click="editItem()"
-          :disabled="!validateForm(props.selectedItem)"
+          :disabled="!validateForm(copySelectedItem)"
           >Сохранить</v-btn
         >
         <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
@@ -559,19 +559,24 @@ const openDialogInfo = (item) => {
   resetSuccessFlags();
 
   emit("update-selected-item", item);
-  console.log("Selected Item:", props.selectedItem.name);
+  console.log("Selected Item:", copySelectedItem.name);
 
   dialogInfo.value = true;
 };
 
+const copySelectedItem = ref({ ...props.selectedItem });
+// Обновление copySelectedItem при изменении props.selectedItem
+watch(
+  () => props.selectedItem,
+  (newValue) => {
+    copySelectedItem.value = { ...newValue };
+  }
+);
+
 const openEditDialog = (item) => {
   resetSuccessFlags();
-  emit("update-selected-item", item);
-  console.log(
-    "props.selectedItem перед открытием редактирования:",
-    props.selectedItem
-  );
-
+  // emit("update-selected-item", item);
+  copySelectedItem.value = { ...item };
   dialogEdit.value = true;
 };
 
@@ -622,8 +627,8 @@ const editItem = async () => {
   successEdit.value = false;
 
   try {
-    await props.updateService(props.selectedItem);
-    const response = await props.updateService(props.selectedItem);
+    await props.updateService(copySelectedItem.value);
+    const response = await props.updateService(copySelectedItem.value);
     successEdit.value = true;
     dialogLoader.value = false;
 
@@ -648,7 +653,7 @@ const deleteItemConfirmed = async () => {
   dialogLoader.value = true;
   successDelete.value = false;
   try {
-    await props.deleteService(props.selectedItem.id);
+    await props.deleteService(copySelectedItem.value.id);
     successDelete.value = true;
     dialogLoader.value = false;
 

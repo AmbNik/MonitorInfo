@@ -132,13 +132,14 @@ const deleteService = async (id) => {
 
 // Функция валидации формы
 const validateForm = (item) => {
+  const virtual_machine = item.virtual_machine || "";
   return (
     item.name.trim() !== "" &&
     item.url.trim() !== "" &&
     /^https?:\/\/\S+\.\S+/g.test(item.url) &&
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
-    item.virtual_machine.trim() !== ""
+    virtual_machine.trim() !== ""
   );
 };
 
