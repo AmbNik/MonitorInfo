@@ -1,6 +1,6 @@
 <template>
   <v-col
-    v-if="!isLoading && !props.items.length"
+    v-if="!isLoading && !props.items.length && !props.error"
     md="5"
     lg="4"
     xl="2"
@@ -61,7 +61,7 @@
       class="align-start pt-10"
     >
       <p class="text-h5">
-        Запись <strong>{{ copySelectedItem?.name }}</strong> успешно удалена
+        Запись <strong>{{ textSuccessDelete }}</strong> успешно удалена
       </p>
     </v-snackbar>
   </v-sheet>
@@ -535,7 +535,7 @@ const openEditDialog = (item) => {
 };
 
 const openDeleteDialog = (item) => {
-  resetSuccessFlags();
+  // resetSuccessFlags();
   emit("update-selected-item", item);
   dialogDelete.value = true;
 };
@@ -600,13 +600,15 @@ const editItem = async () => {
 
 // Переменная для хранения идентификатора таймера
 let editDeleteTimeout;
-
+const textSuccessDelete = ref("");
 const deleteItemConfirmed = async () => {
   dialogDelete.value = false;
   dialogLoader.value = true;
   successDelete.value = false;
   try {
     await props.deleteService(copySelectedItem.value.id);
+    textSuccessDelete.value = copySelectedItem?.value.name;
+
     successDelete.value = true;
     dialogLoader.value = false;
 

@@ -16,8 +16,9 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
     isLoading.value = false;
     data.value = items;
   };
-  const getVirtualMachinesFailure = () => {
+  const getVirtualMachinesFailure = (errors: any) => {
     isLoading.value = false;
+    error.value = errors;
   };
 
   const getVirtualMachines = async (): Promise<any> => {
@@ -27,7 +28,7 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
       getVirtualMachinesSuccess(services);
       return services;
     } catch (errors: any) {
-      getVirtualMachinesFailure();
+      getVirtualMachinesFailure(errors);
       throw errors;
     }
   };
@@ -39,8 +40,9 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
   const VirtualMachinesSuccess = () => {
     isLoading.value = false;
   };
-  const VirtualMachinesFailure = () => {
+  const VirtualMachinesFailure = (errors: any) => {
     isLoading.value = false;
+    error.value = errors;
   };
 
   const addVirtualMachines = async (VirtualMachinesData: any): Promise<any> => {
@@ -49,7 +51,7 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
       await virtualMachinesApi.addVirtualMachines(VirtualMachinesData);
       VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualMachinesFailure();
+      VirtualMachinesFailure(errors);
       throw errors;
     }
   };
@@ -63,7 +65,7 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
       await virtualMachinesApi.updateVirtualMachines(id, VirtualMachinesData);
       VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualMachinesFailure();
+      VirtualMachinesFailure(errors);
       throw errors;
     }
   };
@@ -74,7 +76,7 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
       await virtualMachinesApi.deleteVirtualMachines(id);
       VirtualMachinesSuccess();
     } catch (errors: any) {
-      VirtualMachinesFailure();
+      VirtualMachinesFailure(errors);
       throw errors;
     }
   };
