@@ -7,7 +7,13 @@ const getApplications = () => {
 
 // Метод для добавления нового сервиса
 const addApplications = (applicationData: any) => {
-  return axios.post(`/applications/`, applicationData);
+  try {
+    const response = axios.post(`/applications/`, applicationData);
+    return response;
+  } catch (error) {
+    console.error("Ошибка при добавлении приложения:", error);
+    throw error;
+  }
 };
 // Метод для обновления существующего сервиса
 const updateApplications = (id: any, applicationData: any) => {

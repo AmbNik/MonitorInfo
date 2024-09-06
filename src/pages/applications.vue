@@ -71,6 +71,7 @@ const selectedItem = ref({
 });
 
 const newItem = ref({
+  id: "",
   name: "",
   url: "",
   description: "",
@@ -86,6 +87,7 @@ const updateSelectedItem = (item) => {
 
 const resetNewItem = () => {
   newItem.value = {
+    id: "",
     name: "",
     url: "",
     description: "",
@@ -115,10 +117,14 @@ const addApplications = async (newApplications) => {
     ...newApplications,
     virtual_machine: vmId,
   };
-  console.log("newApplications", copyNewApplications);
+
   try {
-    await applicationsStore.addApplications(copyNewApplications);
+    const response = await applicationsStore.addApplications(
+      copyNewApplications
+    );
+    console.log("response", response);
     await applicationsStore.getApplications();
+    return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
     throw e;

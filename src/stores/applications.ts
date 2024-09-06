@@ -51,8 +51,9 @@ export const useApplicationsStore = defineStore("applications", () => {
   const addApplications = async (applicationData: any): Promise<any> => {
     try {
       ApplicationsStart();
-      await applicationsApi.addApplications(applicationData);
+      const response = await applicationsApi.addApplications(applicationData);
       ApplicationsSuccess();
+      return response.data;
     } catch (errors: any) {
       getApplicationsFailure(errors);
       throw errors;

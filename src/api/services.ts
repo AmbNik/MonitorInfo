@@ -6,9 +6,18 @@ const getServices = () => {
 };
 
 // Метод для добавления нового сервиса
-const addService = (serviceData: any) => {
-  return axios.post(`/services/`, serviceData);
+// Метод для добавления нового сервиса
+const addService = async (serviceData: any) => {
+  try {
+    const response = await axios.post(`/services/`, serviceData);
+    // Предполагаем, что ID нового сервиса возвращается в response.data.id
+    return response;
+  } catch (error) {
+    console.error("Ошибка при добавлении сервиса:", error);
+    throw error;
+  }
 };
+
 // Метод для обновления существующего сервиса
 const updateService = (id: any, serviceData: any) => {
   return axios.put(`/services/${id}/`, serviceData);

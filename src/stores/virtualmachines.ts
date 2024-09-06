@@ -48,8 +48,11 @@ export const useVirtualMachinesStore = defineStore("virtualmachines", () => {
   const addVirtualMachines = async (VirtualMachinesData: any): Promise<any> => {
     try {
       VirtualMachinesStart();
-      await virtualMachinesApi.addVirtualMachines(VirtualMachinesData);
+      const response = await virtualMachinesApi.addVirtualMachines(
+        VirtualMachinesData
+      );
       VirtualMachinesSuccess();
+      return response.data;
     } catch (errors: any) {
       VirtualMachinesFailure(errors);
       throw errors;

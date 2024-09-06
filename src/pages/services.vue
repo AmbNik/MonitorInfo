@@ -73,6 +73,7 @@ const selectedItem = ref({
 });
 
 const newItem = ref({
+  id: "",
   name: "",
   url: "",
   description: "",
@@ -88,6 +89,7 @@ const updateSelectedItem = (item) => {
 
 const resetNewItem = () => {
   newItem.value = {
+    id: "",
     name: "",
     url: "",
     description: "",
@@ -120,8 +122,9 @@ const addService = async (newService) => {
 
   console.log("newService", copyNewService);
   try {
-    await servicesStore.addServices(copyNewService);
+    const response = await servicesStore.addServices(copyNewService);
     await servicesStore.getServices();
+    return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
     throw e;

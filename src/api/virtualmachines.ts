@@ -5,7 +5,14 @@ const getVirtualMachines = () => {
 };
 
 const addVirtualMachines = (virtualMachinesData: any) => {
-  return axios.post(`/virtualmachines/`, virtualMachinesData);
+  try {
+    const response = axios.post(`/virtualmachines/`, virtualMachinesData);
+    // Предполагаем, что ID нового сервиса возвращается в response.data.id
+    return response;
+  } catch (error) {
+    console.error("Ошибка при добавлении ВМ:", error);
+    throw error;
+  }
 };
 const updateVirtualMachines = (id: any, virtualMachinesData: any) => {
   return axios.put(`/virtualmachines/${id}/`, virtualMachinesData);

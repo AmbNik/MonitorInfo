@@ -51,8 +51,10 @@ export const useServicesStore = defineStore("services", () => {
   const addServices = async (serviceData: any): Promise<any> => {
     try {
       ServicesStart();
-      await servicesApi.addService(serviceData);
+      const response = await servicesApi.addService(serviceData);
       ServicesSuccess();
+      console.log("response.data.id;", response);
+      return response.data;
     } catch (errors: any) {
       getServicesFailure(errors);
       throw errors;

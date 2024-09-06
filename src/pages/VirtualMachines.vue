@@ -79,8 +79,11 @@ onMounted(async () => {
 const addVirtualMachines = async (newVirtualMachines) => {
   console.log("newVirtualMachines", newVirtualMachines);
   try {
-    await virtualMachinesStore.addVirtualMachines(newVirtualMachines);
+    const response = await virtualMachinesStore.addVirtualMachines(
+      newVirtualMachines
+    );
     await virtualMachinesStore.getVirtualMachines();
+    return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
     throw e;

@@ -130,6 +130,9 @@
                   v-bind="props"
                   height="120px"
                   :color="isHovering ? 'grey-lighten-2' : 'grey-darken-3'"
+                  :class="{
+                    'green-my': isAddingItem && item.id === isAddingItemName,
+                  }"
                   @click="openDialogInfo(item)"
                 >
                   <v-card-title>
@@ -435,6 +438,9 @@ const successAdd = ref(false);
 const dialogLoader = ref(false);
 const dialog = ref(true);
 
+const isAddingItem = ref(false);
+const isAddingItemName = ref(false);
+
 const virtualMachineOptions = ref([
   { text: "abakushka", value: 2 },
   { text: "Dinner", value: 3 },
@@ -559,12 +565,15 @@ const addItem = async () => {
   dialogAdd.value = false;
   dialogLoader.value = true;
   successAdd.value = false;
+  isAddingItem.value = true;
   try {
-    await props.addService(newItem.value);
+    const response = await props.addService(newItem.value);
     successAdd.value = true;
     dialogLoader.value = false;
+    isAddingItemName.value = response.id;
     setTimeout(() => {
       successAdd.value = false;
+      isAddingItem.value = false;
     }, 5000);
   } catch (error) {
     console.error("Ошибка при добавлении записи:", error);
@@ -579,7 +588,7 @@ const editItem = async () => {
   dialogEdit.value = false;
   dialogLoader.value = true;
   successEdit.value = false;
-
+  isAddingItem.value = true;
   console.log("copySelectedItem", copySelectedItem);
   try {
     await props.updateService(copySelectedItem.value);
@@ -588,9 +597,10 @@ const editItem = async () => {
     // emit("update-selected-item", copySelectedItem);
     // Очистка предыдущего таймера (если есть)
     clearTimeout(editItemTimeout);
-
+    isAddingItemName.value = copySelectedItem.value.id;
     editItemTimeout = setTimeout(() => {
       successEdit.value = false;
+      isAddingItem.value = false;
     }, 5000);
   } catch (error) {
     console.error("Ошибка при редактировании записи:", error);
@@ -632,5 +642,8 @@ const deleteItemConfirmed = async () => {
 }
 .my-2 {
   margin: 8px 0;
+}
+.green-my {
+  background-color: #388e3c !important; /* Цвет для состояния добавления записи */
 }
 </style>
