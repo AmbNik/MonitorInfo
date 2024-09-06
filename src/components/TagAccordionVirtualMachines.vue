@@ -507,6 +507,7 @@ const resetSuccessFlags = async () => {
   successDelete.value = false;
   successEdit.value = false;
   successAdd.value = false;
+  copyInfo.value = false;
 };
 const openDialogInfo = (item) => {
   resetSuccessFlags();

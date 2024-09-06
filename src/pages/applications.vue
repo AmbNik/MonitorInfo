@@ -43,8 +43,17 @@ onMounted(async () => {
 const virtualMachines = computed(() => virtualMachinesStore.data?.data || []);
 // Вычисляемое свойство для списка виртуальных машин
 const virtualMachineNames = computed(
-  () => virtualMachinesStore.data?.data.map((vm) => vm.name) || []
+  () =>
+    virtualMachinesStore.data?.data.map((vm) => ({
+      id: vm.id,
+      name: vm.name,
+    })) || []
 );
+
+const getVirtualMachineIdByName = (id) => {
+  const vm = virtualMachinesStore.data?.data.find((vm) => vm.id === id);
+  return vm ? vm.id : null;
+};
 
 const { isLoading, error } = toRefs(applicationsStore);
 // Use `data.data` to get items from servicesStore
@@ -99,9 +108,20 @@ onMounted(async () => {
 });
 
 const addApplications = async (newApplications) => {
-  console.log("newApplications", newApplications);
+  const vmId = getVirtualMachineIdByName(newApplications.virtual_machine);
+  if (!vmId) {
+    console.error("Виртуальная машина не найдена");
+    return;
+  }
+
+  // Создаем копию newService и обновляем её
+  const copyNewApplications = {
+    ...newApplications,
+    virtual_machine: vmId,
+  };
+  console.log("newApplications", copyNewApplications);
   try {
-    await applicationsStore.addApplications(newApplications);
+    await applicationsStore.addApplications(copyNewApplications);
     await applicationsStore.getApplications();
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
@@ -131,12 +151,11 @@ const deleteApplications = async (id) => {
 
 // Функция валидации формы
 const validateForm = (item) => {
-  const virtual_machine = item.virtual_machine || "";
   return (
     item.name.trim() !== "" &&
     item.url.trim() !== "" &&
     /^https?:\/\/\S+\.\S+/g.test(item.url) &&
-    virtual_machine.trim() !== ""
+    !isNaN(item.virtual_machine)
   );
 };
 

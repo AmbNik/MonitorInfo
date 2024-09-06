@@ -20,7 +20,7 @@
     <!-- App bar -->
     <v-app-bar app>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
-      <v-toolbar-title>Мое приложение</v-toolbar-title>
+      <v-toolbar-title></v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- Search component -->
       <v-text-field

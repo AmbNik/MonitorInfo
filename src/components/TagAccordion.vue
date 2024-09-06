@@ -220,7 +220,7 @@
         <p><strong>Теги:</strong> {{ copySelectedItem?.tags }}</p>
         <p>
           <strong>Виртуальная машина:</strong>
-          {{ copySelectedItem?.virtual_machine || "Не указана" }}
+          {{ selectedVirtualMachineName }}
         </p>
       </v-card-text>
       <v-card-actions>
@@ -307,8 +307,8 @@
           label="Виртуальная машина"
           v-model="copySelectedItem.virtual_machine"
           :items="virtualMachines"
-          item-value="value"
-          item-title="text"
+          item-value="id"
+          item-title="name"
           dense
           class="mb-4"
         ></v-select>
@@ -388,8 +388,8 @@
           label="Виртуальная машина"
           v-model="newItem.virtual_machine"
           :items="virtualMachines"
-          item-value="value"
-          item-title="text"
+          item-value="id"
+          item-title="name"
           dense
           class="mb-4"
         ></v-select>
@@ -586,6 +586,8 @@ watch(
 
 const openEditDialog = (item) => {
   resetSuccessFlags();
+  console.log("item", item);
+  console.log("copySelectedItem", copySelectedItem);
   // emit("update-selected-item", item);
   copySelectedItem.value = { ...item };
   dialogEdit.value = true;
@@ -679,6 +681,13 @@ const deleteItemConfirmed = async () => {
     dialogLoader.value = false;
   }
 };
+
+const selectedVirtualMachineName = computed(() => {
+  const vm = props.virtualMachines.find(
+    (vm) => vm.id === copySelectedItem.value.virtual_machine
+  );
+  return vm ? vm.name : "Не указана";
+});
 </script>
 
 <style>

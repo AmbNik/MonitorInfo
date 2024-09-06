@@ -41,14 +41,25 @@ onMounted(async () => {
   console.log(data.value);
 });
 const virtualMachines = computed(() => virtualMachinesStore.data?.data || []);
+
 // Вычисляемое свойство для списка виртуальных машин
 const virtualMachineNames = computed(
-  () => virtualMachinesStore.data?.data.map((vm) => vm.name) || []
+  () =>
+    virtualMachinesStore.data?.data.map((vm) => ({
+      id: vm.id,
+      name: vm.name,
+    })) || []
 );
 
+console.log("virtualMachineNames", virtualMachineNames);
 const { isLoading, error } = toRefs(servicesStore);
 // Use `data.data` to get items from servicesStore
 const data = computed(() => servicesStore.data?.data || []);
+
+const getVirtualMachineIdByName = (id) => {
+  const vm = virtualMachinesStore.data?.data.find((vm) => vm.id === id);
+  return vm ? vm.id : null;
+};
 
 const selectedItem = ref({
   id: "",
@@ -99,9 +110,17 @@ onMounted(async () => {
 });
 
 const addService = async (newService) => {
-  console.log("newService", newService);
+  const vmId = getVirtualMachineIdByName(newService.virtual_machine);
+
+  // Создаем копию newService и обновляем её
+  const copyNewService = {
+    ...newService,
+    virtual_machine: vmId,
+  };
+
+  console.log("newService", copyNewService);
   try {
-    await servicesStore.addServices(newService);
+    await servicesStore.addServices(copyNewService);
     await servicesStore.getServices();
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
@@ -132,14 +151,13 @@ const deleteService = async (id) => {
 
 // Функция валидации формы
 const validateForm = (item) => {
-  const virtual_machine = item.virtual_machine || "";
   return (
     item.name.trim() !== "" &&
     item.url.trim() !== "" &&
     /^https?:\/\/\S+\.\S+/g.test(item.url) &&
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
-    virtual_machine.trim() !== ""
+    !isNaN(item.virtual_machine)
   );
 };
 
