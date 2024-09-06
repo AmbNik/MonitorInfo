@@ -109,10 +109,6 @@ onMounted(async () => {
 
 const addApplications = async (newApplications) => {
   const vmId = getVirtualMachineIdByName(newApplications.virtual_machine);
-  if (!vmId) {
-    console.error("Виртуальная машина не найдена");
-    return;
-  }
 
   // Создаем копию newService и обновляем её
   const copyNewApplications = {
