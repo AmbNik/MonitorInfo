@@ -456,6 +456,9 @@ const virtualMachineOptions = ref([
   // Добавьте другие виртуальные машины по необходимости
 ]);
 
+// Обычная переменная для хранения позиции прокрутки
+let scrollPosition = 0;
+
 const saveChanges = () => {
   // Код для сохранения изменений (например, отправка данных на сервер)
   dialog.value = false;
@@ -516,6 +519,7 @@ const resetSuccessFlags = async () => {
   copyInfo.value = false;
 };
 const openDialogInfo = (item) => {
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
 
   emit("update-selected-item", item);
@@ -533,6 +537,7 @@ watch(
   }
 );
 const openEditDialog = (item) => {
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
   // emit("update-selected-item", item);
   console.log("item", item);
@@ -542,6 +547,7 @@ const openEditDialog = (item) => {
 };
 
 const openDeleteDialog = (item) => {
+  scrollPosition = window.scrollY;
   // resetSuccessFlags();
   emit("update-selected-item", item);
   dialogDelete.value = true;
@@ -552,6 +558,7 @@ const resetNewItem = () => {
 };
 
 const openAddDialog = (tag = null) => {
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
   resetNewItem();
   if (tag == "Без тега") tag = null;
@@ -571,6 +578,8 @@ const addItem = async () => {
     successAdd.value = true;
     dialogLoader.value = false;
     isAddingItemName.value = response.id;
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     setTimeout(() => {
       successAdd.value = false;
       isAddingItem.value = false;
@@ -597,6 +606,8 @@ const editItem = async () => {
     // emit("update-selected-item", copySelectedItem);
     // Очистка предыдущего таймера (если есть)
     clearTimeout(editItemTimeout);
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     isAddingItemName.value = copySelectedItem.value.id;
     editItemTimeout = setTimeout(() => {
       successEdit.value = false;
@@ -622,7 +633,8 @@ const deleteItemConfirmed = async () => {
 
     successDelete.value = true;
     dialogLoader.value = false;
-
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     // Очистка предыдущего таймера (если есть)
     clearTimeout(editDeleteTimeout);
     editDeleteTimeout = setTimeout(() => {

@@ -514,6 +514,9 @@ const virtualMachineOptions = ref([
   // Добавьте другие виртуальные машины по необходимости
 ]);
 
+// Обычная переменная для хранения позиции прокрутки
+let scrollPosition = 0;
+
 const saveChanges = () => {
   // Код для сохранения изменений (например, отправка данных на сервер)
   dialog.value = false;
@@ -592,6 +595,8 @@ watch(
 );
 
 const openEditDialog = (item) => {
+  // saveScrollPosition();
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
   console.log("item", item);
   console.log("copySelectedItem", copySelectedItem);
@@ -601,6 +606,7 @@ const openEditDialog = (item) => {
 };
 
 const openDeleteDialog = (item) => {
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
   emit("update-selected-item", item);
   dialogDelete.value = true;
@@ -611,6 +617,7 @@ const resetNewItem = () => {
 };
 
 const openAddDialog = (tag = null) => {
+  scrollPosition = window.scrollY;
   resetSuccessFlags();
   resetNewItem();
   if (tag == "Без тега") tag = null;
@@ -635,6 +642,8 @@ const addItem = async () => {
 
     console.log("newItem.value", newItem.value);
     isAddingItemName.value = response.id;
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     setTimeout(() => {
       successAdd.value = false;
       isAddingItem.value = false;
@@ -654,6 +663,7 @@ const editItem = async () => {
   dialogLoader.value = true;
   successEdit.value = false;
   isAddingItem.value = true;
+
   try {
     await props.updateService(copySelectedItem.value);
     const response = await props.updateService(copySelectedItem.value);
@@ -663,6 +673,9 @@ const editItem = async () => {
     // Очистка предыдущего таймера (если есть)
     clearTimeout(editItemTimeout);
     isAddingItemName.value = copySelectedItem.value.id;
+    // Используем nextTick, чтобы дождаться обновления DOM
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     editItemTimeout = setTimeout(() => {
       successEdit.value = false;
       isAddingItem.value = false;
@@ -688,6 +701,8 @@ const deleteItemConfirmed = async () => {
 
     // Очистка предыдущего таймера (если есть)
     clearTimeout(editDeleteTimeout);
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
     editDeleteTimeout = setTimeout(() => {
       successDelete.value = false;
     }, 5000);
