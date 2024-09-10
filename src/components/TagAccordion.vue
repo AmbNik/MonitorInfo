@@ -329,7 +329,7 @@
   </v-dialog> -->
 
   <!-- Модальное окно для добавления нового элемента -->
-  <v-dialog v-model="dialogAdd" max-width="500">
+  <!-- <v-dialog v-model="dialogAdd" max-width="500">
     <v-card>
       <v-card-title>
         <span class="headline">Добавить новый элемент</span>
@@ -404,7 +404,7 @@
         <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </v-dialog> -->
 
   <!-- <v-dialog v-model="dialogLoader" max-width="320" persistent>
     <v-list class="py-2" color="primary" elevation="12" rounded="lg">
@@ -430,6 +430,8 @@ const emit = defineEmits([
   "update-selected-item",
   "update-new-item",
   "open-dialog-info",
+  "add-item",
+  "scroll-position-update",
 ]);
 
 // const dialogInfo = defineModel("dialogInfo");
@@ -536,16 +538,16 @@ const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
 
-const uniqueTagsListModal = computed(() => {
-  const tags = new Set();
+// const uniqueTagsListModal = computed(() => {
+//   const tags = new Set();
 
-  props.items.forEach((item) => {
-    if (item.tags !== null) tags.add(item.tags);
-  });
+//   props.items.forEach((item) => {
+//     if (item.tags !== null) tags.add(item.tags);
+//   });
 
-  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
-  return sortedTags;
-});
+//   const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+//   return sortedTags;
+// });
 
 const uniqueTags = computed(() => {
   const tags = new Set();
@@ -623,43 +625,41 @@ const resetNewItem = () => {
 };
 
 const openAddDialog = (tag = null) => {
-  scrollPosition = window.scrollY;
-  resetSuccessFlags();
-  resetNewItem();
-  if (tag == "Без тега") tag = null;
-  newItem.value.tags = tag;
-
-  dialogAdd.value = true;
+  emit("scroll-position-update", window.scrollY);
+  emit("add-item", tag);
+  console.log("sssssss");
+  // resetSuccessFlags();
+  // resetNewItem();
 };
 
-const addItem = async () => {
-  console.log("222newItem", newItem.value);
-  dialogAdd.value = false;
-  dialogLoader.value = true;
-  successAdd.value = false;
-  isAddingItem.value = true;
-  try {
-    const response = await props.addService(newItem.value);
+// const addItem = async () => {
+//   console.log("222newItem", newItem.value);
+//   dialogAdd.value = false;
+//   dialogLoader.value = true;
+//   successAdd.value = false;
+//   isAddingItem.value = true;
+//   try {
+//     const response = await props.addService(newItem.value);
 
-    // Проверьте структуру ответа
-    console.log("Response from addService:", response);
-    successAdd.value = true;
-    dialogLoader.value = false;
+//     // Проверьте структуру ответа
+//     console.log("Response from addService:", response);
+//     successAdd.value = true;
+//     dialogLoader.value = false;
 
-    console.log("newItem.value", newItem.value);
-    isAddingItemName.value = response.id;
-    await nextTick();
-    window.scrollTo(0, scrollPosition);
-    setTimeout(() => {
-      successAdd.value = false;
-      isAddingItem.value = false;
-    }, 5000);
-  } catch (error) {
-    console.error("Ошибка при добавлении записи:", error);
-    successAdd.value = false;
-    dialogLoader.value = false;
-  }
-};
+//     console.log("newItem.value", newItem.value);
+//     isAddingItemName.value = response.id;
+//     await nextTick();
+//     window.scrollTo(0, scrollPosition);
+//     setTimeout(() => {
+//       successAdd.value = false;
+//       isAddingItem.value = false;
+//     }, 5000);
+//   } catch (error) {
+//     console.error("Ошибка при добавлении записи:", error);
+//     successAdd.value = false;
+//     dialogLoader.value = false;
+//   }
+// };
 // Переменная для хранения идентификатора таймера
 // let editItemTimeout;
 

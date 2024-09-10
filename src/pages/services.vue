@@ -21,6 +21,7 @@
         @scroll-position-update="scrollPositionUpdate"
         v-model:dialogInfo="dialogInfo"
         @open-dialog-info="openDialogInfo"
+        @add-item="AddItemOpenDialog"
       />
       <ModalEdit
         v-model:dialog="dialogEdit"
@@ -52,6 +53,21 @@
         v-model:successCopyInfo="successCopyInfo"
         :copyText="copyText"
       />
+
+      <ModalAdd
+        v-model:dialogAdd="dialogAdd"
+        :item="newItem"
+        :title="'Добавить новый элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @add-item="addItem"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        v-model:disabled="disabledSave"
+      />
+
+      <SnackbarAdd :successEdit="successAdd" :SelectedItemName="newItem.name" />
     </v-container>
   </v-main>
 </template>
@@ -66,9 +82,11 @@ import DialogLoader from "@/components/DialogLoader.vue";
 import SnackbarEdit from "@/components/SnackbarEdit.vue";
 import ModalInfo from "@/components/ModalInfo.vue";
 import SnackbarCopy from "@/components/SnackbarCopy.vue";
+import ModalAdd from "@/components/ModalAdd.vue";
 
 const dialogEdit = ref(false);
 const dialogInfo = ref(false);
+const dialogAdd = ref(false);
 
 const successCopyInfo = ref(false);
 const copyText = ref("");
@@ -158,6 +176,17 @@ const openDialogInfo = (item) => {
   dialogInfo.value = true;
 };
 
+const AddItemOpenDialog = (tag) => {
+  // scrollPosition = window.scrollY;
+  // console.log("1scrollPosition", scrollPosition);
+
+  if (tag == "Без тега") tag = null;
+  newItem.value.tags = tag;
+
+  dialogAdd.value = true;
+  console.log("dialogAdd", dialogAdd.value);
+  console.log("newItem", newItem.value);
+};
 const updateSelectedItem = (item) => {
   // scrollPosition = window.scrollY;
   // console.log("1scrollPosition", scrollPosition);
@@ -260,8 +289,10 @@ const resetSuccessFlags = async () => {
 };
 const dialogLoader = ref(false);
 const successEdit = ref(false);
+const successAdd = ref(false);
 // Обычная переменная для хранения позиции прокрутки
 let scrollPosition = 0;
+
 const editItem = async () => {
   console.log("111selectedItem", selectedItem.value);
   dialogEdit.value = false;
@@ -294,9 +325,49 @@ const editItem = async () => {
   }
 };
 
+const addItem = async (newItem) => {
+  console.log("newItem", newItem);
+  dialogAdd.value = false;
+  dialogLoader.value = true;
+  successAdd.value = false;
+  // isAddingItem.value = true;
+  try {
+    const response = await addService(newItem);
+
+    // Проверьте структуру ответа
+    console.log("Response from addService:", response);
+    successAdd.value = true;
+    dialogLoader.value = false;
+
+    console.log("newItem.value", newItem);
+    // isAddingItemName.value = response.id;
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
+    setTimeout(() => {
+      successAdd.value = false;
+      // isAddingItem.value = false;
+    }, 5000);
+  } catch (error) {
+    console.error("Ошибка при добавлении записи:", error);
+    successAdd.value = false;
+    dialogLoader.value = false;
+  }
+};
+
 const dialogClose = () => {
   dialogEdit.value = false;
 };
+
+const uniqueTagsList = computed(() => {
+  const tags = new Set();
+
+  services.value.forEach((service) => {
+    if (service.tags !== null) tags.add(service.tags);
+  });
+
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  return sortedTags;
+});
 </script>
 
 <style>
