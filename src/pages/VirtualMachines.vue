@@ -22,15 +22,22 @@
 <script setup>
 import { ref, computed, onMounted, toRefs } from "vue";
 import { useRouter } from "vue-router";
-import { useVirtualMachinesStore } from "@/stores/virtualmachines";
+import { useVirtualMachines } from "@/composables/useVirtualMachines";
 
 const router = useRouter();
 
-const virtualMachinesStore = useVirtualMachinesStore();
+const {
+  data: virtualMachinesData,
+  isLoading,
+  error,
+  getVirtualMachines,
+  updateVirtualMachines: updateVirtualMachinesUse,
+  deleteVirtualMachines: deleteVirtualMachinesUse,
+  addVirtualMachines: addVirtualMachinesUse,
+} = useVirtualMachines();
 
-const { isLoading, error } = toRefs(virtualMachinesStore);
 // Use `data.data` to get items from servicesStore
-const data = computed(() => virtualMachinesStore.data?.data || []);
+const data = computed(() => virtualMachinesData.value?.data || []);
 
 const selectedItem = ref({
   id: "",
@@ -67,7 +74,7 @@ const resetNewItem = () => {
 
 onMounted(async () => {
   try {
-    await virtualMachinesStore.getVirtualMachines();
+    await getVirtualMachines();
   } catch (e) {
     console.error("Ошибка при получения сервиса:", e);
     throw e;
@@ -79,10 +86,8 @@ onMounted(async () => {
 const addVirtualMachines = async (newVirtualMachines) => {
   console.log("newVirtualMachines", newVirtualMachines);
   try {
-    const response = await virtualMachinesStore.addVirtualMachines(
-      newVirtualMachines
-    );
-    await virtualMachinesStore.getVirtualMachines();
+    const response = await addVirtualMachinesUse(newVirtualMachines);
+    await getVirtualMachines();
     return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
@@ -92,11 +97,8 @@ const addVirtualMachines = async (newVirtualMachines) => {
 
 const updateVirtualMachines = async (selectedItem) => {
   try {
-    await virtualMachinesStore.updateVirtualMachines(
-      selectedItem.id,
-      selectedItem
-    );
-    await virtualMachinesStore.getVirtualMachines();
+    await updateVirtualMachinesUse(selectedItem.id, selectedItem);
+    await getVirtualMachines();
   } catch (e) {
     console.error("Ошибка при редактирования сервиса:", e);
     throw e;
@@ -105,8 +107,8 @@ const updateVirtualMachines = async (selectedItem) => {
 
 const deleteVirtualMachines = async (id) => {
   try {
-    await virtualMachinesStore.deleteVirtualMachines(id);
-    await virtualMachinesStore.getVirtualMachines();
+    await deleteVirtualMachinesUse(id);
+    await getVirtualMachines();
   } catch (e) {
     console.error("Ошибка при удалении сервиса:", e);
     throw e;
