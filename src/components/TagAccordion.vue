@@ -30,7 +30,7 @@
     variant="outlined"
     >{{ props.error.message }}</v-alert
   >
-  <v-sheet class="d-flex flex-column">
+  <!-- <v-sheet class="d-flex flex-column">
     <v-snackbar
       v-model="successEdit"
       color="green-darken-1"
@@ -40,7 +40,7 @@
         Запись <strong>{{ copySelectedItem?.name }}</strong> успешно изменена
       </p>
     </v-snackbar>
-  </v-sheet>
+  </v-sheet> -->
 
   <v-sheet class="d-flex flex-column">
     <v-snackbar
@@ -248,7 +248,7 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="dialogEdit" max-width="500">
+  <!-- <v-dialog v-model="dialogEdit" max-width="500">
     <v-card>
       <v-card-title>
         <span class="headline">Добавить новый элемент</span>
@@ -326,7 +326,7 @@
         <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </v-dialog> -->
 
   <!-- Модальное окно для добавления нового элемента -->
   <v-dialog v-model="dialogAdd" max-width="500">
@@ -406,7 +406,7 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="dialogLoader" max-width="320" persistent>
+  <!-- <v-dialog v-model="dialogLoader" max-width="320" persistent>
     <v-list class="py-2" color="primary" elevation="12" rounded="lg">
       <v-list-item title="Выполнение операции">
         <template v-slot:append>
@@ -419,7 +419,7 @@
         </template>
       </v-list-item>
     </v-list>
-  </v-dialog>
+  </v-dialog> -->
 </template>
 
 <script setup>
@@ -468,7 +468,8 @@ const newItem = ref(props.newItem);
 // console.log("props.error", props.error);
 const panel = ref([]);
 const dialogInfo = ref(false);
-const dialogEdit = ref(false);
+
+const dialogEdit = defineModel("dialogEdit");
 const dialogAdd = ref(false);
 const dialogDelete = ref(false);
 const successDelete = ref(false);
@@ -596,13 +597,10 @@ watch(
 
 const openEditDialog = (item) => {
   // saveScrollPosition();
-  scrollPosition = window.scrollY;
+  // scrollPosition = window.scrollY;
   resetSuccessFlags();
-  console.log("item", item);
-  console.log("copySelectedItem", copySelectedItem);
-  // emit("update-selected-item", item);
-  copySelectedItem.value = { ...item };
-  dialogEdit.value = true;
+  emit("update-selected-item", item);
+  emit("scroll-position-update", window.scrollY);
 };
 
 const openDeleteDialog = (item) => {
@@ -655,37 +653,37 @@ const addItem = async () => {
   }
 };
 // Переменная для хранения идентификатора таймера
-let editItemTimeout;
+// let editItemTimeout;
 
-const editItem = async () => {
-  console.log("111props.selectedItem", props.selectedItem);
-  dialogEdit.value = false;
-  dialogLoader.value = true;
-  successEdit.value = false;
-  isAddingItem.value = true;
+// const editItem = async () => {
+//   console.log("111props.selectedItem", props.selectedItem);
+//   dialogEdit.value = false;
+//   dialogLoader.value = true;
+//   successEdit.value = false;
+//   isAddingItem.value = true;
 
-  try {
-    await props.updateService(copySelectedItem.value);
-    const response = await props.updateService(copySelectedItem.value);
-    successEdit.value = true;
-    dialogLoader.value = false;
+//   try {
+//     await props.updateService(copySelectedItem.value);
+//     const response = await props.updateService(copySelectedItem.value);
+//     successEdit.value = true;
+//     dialogLoader.value = false;
 
-    // Очистка предыдущего таймера (если есть)
-    clearTimeout(editItemTimeout);
-    isAddingItemName.value = copySelectedItem.value.id;
-    // Используем nextTick, чтобы дождаться обновления DOM
-    await nextTick();
-    window.scrollTo(0, scrollPosition);
-    editItemTimeout = setTimeout(() => {
-      successEdit.value = false;
-      isAddingItem.value = false;
-    }, 5000);
-  } catch (error) {
-    console.error("Ошибка при редактировании записи:", error);
-    successEdit.value = false;
-    dialogLoader.value = false;
-  }
-};
+//     // Очистка предыдущего таймера (если есть)
+//     clearTimeout(editItemTimeout);
+//     isAddingItemName.value = copySelectedItem.value.id;
+//     // Используем nextTick, чтобы дождаться обновления DOM
+//     await nextTick();
+//     window.scrollTo(0, scrollPosition);
+//     editItemTimeout = setTimeout(() => {
+//       successEdit.value = false;
+//       isAddingItem.value = false;
+//     }, 5000);
+//   } catch (error) {
+//     console.error("Ошибка при редактировании записи:", error);
+//     successEdit.value = false;
+//     dialogLoader.value = false;
+//   }
+// };
 
 // Переменная для хранения идентификатора таймера
 let editDeleteTimeout;

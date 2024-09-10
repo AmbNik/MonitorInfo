@@ -17,16 +17,41 @@
         :validationRules="validationRules"
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
+        v-model:dialogEdit="dialogEdit"
+        @scroll-position-update="scrollPositionUpdate"
+      />
+      <ModalEdit
+        v-model:dialog="dialogEdit"
+        :item="selectedItem"
+        :title="'Добавить новый элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @save-items="editItem"
+        @update-selected-item="updateSelectedItem"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        v-model:disabled="disabledSave"
+      />
+      <DialogLoader :dialogLoader="dialogLoader" />
+      <SnackbarEdit
+        :successEdit="successEdit"
+        :SelectedItemName="selectedItem.name"
       />
     </v-container>
   </v-main>
 </template>
 <script setup>
-import { ref, computed, onMounted, toRefs } from "vue";
+import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
 // import { useServicesStore } from "@/stores/services";
 import { useVirtualMachines } from "@/composables/useVirtualMachines";
 import { useServices } from "@/composables/useServices";
+import ModalEdit from "@/components/ModalEdit.vue";
+import DialogLoader from "@/components/DialogLoader.vue";
+import SnackbarEdit from "@/components/SnackbarEdit.vue";
+
+const dialogEdit = ref(false);
 
 const router = useRouter();
 const {
@@ -94,6 +119,8 @@ const selectedItem = ref({
   virtual_machine: "",
 });
 
+console.log("selectedItem", selectedItem);
+
 const newItem = ref({
   id: "",
   name: "",
@@ -106,9 +133,16 @@ const newItem = ref({
 });
 
 const updateSelectedItem = (item) => {
+  // scrollPosition = window.scrollY;
+  // console.log("1scrollPosition", scrollPosition);
+  console.log("я здесь", item);
   selectedItem.value = item;
+  dialogEdit.value = true;
 };
 
+const scrollPositionUpdate = (Position) => {
+  scrollPosition = Position;
+};
 const resetNewItem = () => {
   newItem.value = {
     id: "",
@@ -163,16 +197,19 @@ const deleteService = async (id) => {
   }
 };
 
+let disabledSave = ref(false);
 // Функция валидации формы
 const validateForm = (item) => {
-  return (
+  console.log("item", item);
+  disabledSave.value =
     item.name.trim() !== "" &&
     item.url.trim() !== "" &&
     /^https?:\/\/\S+\.\S+/g.test(item.url) &&
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
-    !isNaN(item.virtual_machine)
-  );
+    !isNaN(item.virtual_machine);
+
+  console.log("disabledSave", disabledSave.value);
 };
 
 // Определите правила валидации
@@ -186,6 +223,53 @@ const validationRules = {
       /^https?:\/\/\S+\.\S+/g.test(v) ||
       "Некорректный формат URL. Например, https://example.com",
   ],
+};
+
+let editItemTimeout;
+
+const resetSuccessFlags = async () => {
+  // successDelete.value = false;
+  successEdit.value = false;
+  // successAdd.value = false;
+};
+const dialogLoader = ref(false);
+const successEdit = ref(false);
+// Обычная переменная для хранения позиции прокрутки
+let scrollPosition = 0;
+const editItem = async () => {
+  console.log("111selectedItem", selectedItem.value);
+  dialogEdit.value = false;
+  dialogLoader.value = true;
+  successEdit.value = false;
+  // isAddingItem.value = true;
+
+  try {
+    // await updateServiceUse(selectedItem);
+    const response = await updateService(selectedItem.value);
+    successEdit.value = true;
+    dialogLoader.value = false;
+    console.log("successEdit", successEdit.value);
+    // Очистка предыдущего таймера (если есть)
+    clearTimeout(editItemTimeout);
+    // isAddingItemName.value = selectedItem.value.id;
+    // Используем nextTick, чтобы дождаться обновления DOM
+    await nextTick();
+    window.scrollTo(0, scrollPosition);
+    console.log("2scrollPosition", scrollPosition);
+    editItemTimeout = setTimeout(() => {
+      successEdit.value = false;
+      console.log("successEdit", successEdit.value);
+      // isAddingItem.value = false;
+    }, 5000);
+  } catch (error) {
+    console.error("Ошибка при редактировании записи:", error);
+    successEdit.value = false;
+    dialogLoader.value = false;
+  }
+};
+
+const dialogClose = () => {
+  dialogEdit.value = false;
 };
 </script>
 
