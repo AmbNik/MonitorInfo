@@ -3,7 +3,7 @@
     <v-container>
       <h1>Приложения</h1>
       <TagAccordion
-        :items="data"
+        :items="applications"
         :isLoading="isLoading"
         :virtualMachines="virtualMachineNames"
         :addService="addApplications"
@@ -23,16 +23,27 @@
 <script setup>
 import { ref, computed, onMounted, toRefs } from "vue";
 import { useRouter } from "vue-router";
-import { useApplicationsStore } from "@/stores/applications";
-import { useVirtualMachinesStore } from "@/stores/virtualmachines";
+import { useApplications } from "@/composables/UseApplications";
+import { useVirtualMachines } from "@/composables/useVirtualMachines";
 const router = useRouter();
 
-const applicationsStore = useApplicationsStore();
+const {
+  data,
+  isLoading,
+  error,
+  getApplications,
+  addApplications: addApplicationsUse,
+  updateApplications: updateApplicationsUse,
+  deleteApplications: deleteApplicationsUse,
+} = useApplications();
 
-const virtualMachinesStore = useVirtualMachinesStore();
+const { data: virtualMachinesData, getVirtualMachines } = useVirtualMachines();
+
+const applications = computed(() => data.value?.data || []);
+
 onMounted(async () => {
   try {
-    await virtualMachinesStore.getVirtualMachines();
+    await getVirtualMachines();
   } catch (e) {
     console.error("Ошибка при получения сервиса:", e);
     throw e;
@@ -40,24 +51,22 @@ onMounted(async () => {
   // Debugging: log items to check if they are populated
   console.log(data.value);
 });
-const virtualMachines = computed(() => virtualMachinesStore.data?.data || []);
+const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
 // Вычисляемое свойство для списка виртуальных машин
 const virtualMachineNames = computed(
   () =>
-    virtualMachinesStore.data?.data.map((vm) => ({
+    virtualMachinesData.value?.data.map((vm) => ({
       id: vm.id,
       name: vm.name,
     })) || []
 );
 
 const getVirtualMachineIdByName = (id) => {
-  const vm = virtualMachinesStore.data?.data.find((vm) => vm.id === id);
+  const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
   return vm ? vm.id : null;
 };
 
-const { isLoading, error } = toRefs(applicationsStore);
 // Use `data.data` to get items from servicesStore
-const data = computed(() => applicationsStore.data?.data || []);
 
 const selectedItem = ref({
   id: "",
@@ -100,7 +109,7 @@ const resetNewItem = () => {
 
 onMounted(async () => {
   try {
-    await applicationsStore.getApplications();
+    await getApplications();
   } catch (e) {
     console.error("Ошибка при получения сервиса:", e);
     throw e;
@@ -119,11 +128,9 @@ const addApplications = async (newApplications) => {
   };
 
   try {
-    const response = await applicationsStore.addApplications(
-      copyNewApplications
-    );
+    const response = await addApplicationsUse(copyNewApplications);
     console.log("response", response);
-    await applicationsStore.getApplications();
+    await getApplications();
     return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
@@ -133,8 +140,8 @@ const addApplications = async (newApplications) => {
 
 const updateApplications = async (selectedItem) => {
   try {
-    await applicationsStore.updateApplications(selectedItem.id, selectedItem);
-    await applicationsStore.getApplications();
+    await updateApplicationsUse(selectedItem.id, selectedItem);
+    await getApplications();
   } catch (e) {
     console.error("Ошибка при редактирования сервиса:", e);
     throw e;
@@ -143,8 +150,8 @@ const updateApplications = async (selectedItem) => {
 
 const deleteApplications = async (id) => {
   try {
-    await applicationsStore.deleteApplications(id);
-    await applicationsStore.getApplications();
+    await deleteApplicationsUse(id);
+    await getApplications();
   } catch (e) {
     console.error("Ошибка при удалении сервиса:", e);
     throw e;

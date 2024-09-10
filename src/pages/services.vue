@@ -2,8 +2,9 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Сервисы</h1>
+      <!-- services {{ services }} -->
       <TagAccordion
-        :items="data"
+        :items="services"
         :isLoading="isLoading"
         :virtualMachines="virtualMachineNames"
         :addService="addService"
@@ -23,16 +24,25 @@
 <script setup>
 import { ref, computed, onMounted, toRefs } from "vue";
 import { useRouter } from "vue-router";
-import { useServicesStore } from "@/stores/services";
-import { useVirtualMachinesStore } from "@/stores/virtualmachines";
+// import { useServicesStore } from "@/stores/services";
+import { useVirtualMachines } from "@/composables/useVirtualMachines";
+import { useServices } from "@/composables/useServices";
 
 const router = useRouter();
+const {
+  data,
+  isLoading,
+  error,
+  getServices,
+  addServices,
+  updateService: updateServiceUse,
+  deleteService: deleteServiceUse,
+} = useServices();
 
-const servicesStore = useServicesStore();
-const virtualMachinesStore = useVirtualMachinesStore();
 onMounted(async () => {
   try {
-    await virtualMachinesStore.getVirtualMachines();
+    console.error("Ошdd");
+    await getServices();
   } catch (e) {
     console.error("Ошибка при получения сервиса:", e);
     throw e;
@@ -40,24 +50,36 @@ onMounted(async () => {
   // Debugging: log items to check if they are populated
   console.log(data.value);
 });
-const virtualMachines = computed(() => virtualMachinesStore.data?.data || []);
+
+const services = computed(() => data.value?.data || []);
+
+const { data: virtualMachinesData, getVirtualMachines } = useVirtualMachines();
+
+onMounted(async () => {
+  try {
+    await getVirtualMachines();
+  } catch (e) {
+    console.error("Ошибка при получения сервиса:", e);
+    throw e;
+  }
+  // Debugging: log items to check if they are populated
+  console.log(services.value);
+});
+const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
 
 // Вычисляемое свойство для списка виртуальных машин
 const virtualMachineNames = computed(
   () =>
-    virtualMachinesStore.data?.data.map((vm) => ({
+    virtualMachinesData.value?.data.map((vm) => ({
       id: vm.id,
       name: vm.name,
     })) || []
 );
 
 console.log("virtualMachineNames", virtualMachineNames);
-const { isLoading, error } = toRefs(servicesStore);
-// Use `data.data` to get items from servicesStore
-const data = computed(() => servicesStore.data?.data || []);
 
 const getVirtualMachineIdByName = (id) => {
-  const vm = virtualMachinesStore.data?.data.find((vm) => vm.id === id);
+  const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
   return vm ? vm.id : null;
 };
 
@@ -100,17 +122,6 @@ const resetNewItem = () => {
   };
 };
 
-onMounted(async () => {
-  try {
-    await servicesStore.getServices();
-  } catch (e) {
-    console.error("Ошибка при получения сервиса:", e);
-    throw e;
-  }
-  // Debugging: log items to check if they are populated
-  console.log(data.value);
-});
-
 const addService = async (newService) => {
   const vmId = getVirtualMachineIdByName(newService.virtual_machine);
 
@@ -122,8 +133,8 @@ const addService = async (newService) => {
 
   console.log("newService", copyNewService);
   try {
-    const response = await servicesStore.addServices(copyNewService);
-    await servicesStore.getServices();
+    const response = await addServices(copyNewService);
+    await getServices();
     return response;
   } catch (e) {
     console.error("Ошибка при добавлении сервиса:", e);
@@ -134,8 +145,8 @@ const addService = async (newService) => {
 const updateService = async (selectedItem) => {
   console.log("33selectedItem", selectedItem);
   try {
-    await servicesStore.updateService(selectedItem.id, selectedItem);
-    await servicesStore.getServices();
+    await updateServiceUse(selectedItem.id, selectedItem);
+    await getServices();
   } catch (e) {
     console.error("Ошибка при редактирования сервиса:", e);
     throw e;
@@ -144,8 +155,8 @@ const updateService = async (selectedItem) => {
 
 const deleteService = async (id) => {
   try {
-    await servicesStore.deleteService(id);
-    await servicesStore.getServices();
+    await deleteServiceUse(id);
+    await getServices();
   } catch (e) {
     console.error("Ошибка при удалении сервиса:", e);
     throw e;
