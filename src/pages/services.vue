@@ -19,6 +19,8 @@
         @update-new-item="resetNewItem"
         v-model:dialogEdit="dialogEdit"
         @scroll-position-update="scrollPositionUpdate"
+        v-model:dialogInfo="dialogInfo"
+        @open-dialog-info="openDialogInfo"
       />
       <ModalEdit
         v-model:dialog="dialogEdit"
@@ -38,6 +40,18 @@
         :successEdit="successEdit"
         :SelectedItemName="selectedItem.name"
       />
+
+      <ModalInfo
+        v-model:dialogInfo="dialogInfo"
+        :item="selectedItem"
+        v-model:copyInfo="successCopyInfo"
+        v-model:copyText="copyText"
+      />
+
+      <SnackbarCopy
+        v-model:successCopyInfo="successCopyInfo"
+        :copyText="copyText"
+      />
     </v-container>
   </v-main>
 </template>
@@ -50,8 +64,14 @@ import { useServices } from "@/composables/useServices";
 import ModalEdit from "@/components/ModalEdit.vue";
 import DialogLoader from "@/components/DialogLoader.vue";
 import SnackbarEdit from "@/components/SnackbarEdit.vue";
+import ModalInfo from "@/components/ModalInfo.vue";
+import SnackbarCopy from "@/components/SnackbarCopy.vue";
 
 const dialogEdit = ref(false);
+const dialogInfo = ref(false);
+
+const successCopyInfo = ref(false);
+const copyText = ref("");
 
 const router = useRouter();
 const {
@@ -131,6 +151,12 @@ const newItem = ref({
   tags: "",
   virtual_machine: "",
 });
+
+const openDialogInfo = (item) => {
+  console.log("openDialogInfo", item);
+  selectedItem.value = item;
+  dialogInfo.value = true;
+};
 
 const updateSelectedItem = (item) => {
   // scrollPosition = window.scrollY;

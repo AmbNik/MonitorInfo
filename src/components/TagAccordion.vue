@@ -54,7 +54,7 @@
     </v-snackbar>
   </v-sheet>
 
-  <v-sheet class="d-flex flex-column">
+  <!-- <v-sheet class="d-flex flex-column">
     <v-snackbar
       v-model="copyInfo"
       color="blue-darken-3"
@@ -64,7 +64,7 @@
         Скопирован <strong>{{ copyText }}</strong> в буфер обмена
       </p>
     </v-snackbar>
-  </v-sheet>
+  </v-sheet> -->
   <v-sheet class="d-flex flex-column">
     <v-snackbar
       v-model="successAdd"
@@ -192,7 +192,7 @@
     </v-expansion-panel>
   </v-expansion-panels>
 
-  <v-dialog v-model="dialogInfo" max-width="500">
+  <!-- <v-dialog v-model="dialogInfo" max-width="500">
     <v-card>
       <v-card-title>
         <span class="headline">{{ copySelectedItem?.name }}</span>
@@ -230,7 +230,7 @@
         <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </v-dialog> -->
 
   <!-- Диалоговое окно подтверждения удаления -->
   <v-dialog v-model="dialogDelete" max-width="400">
@@ -426,7 +426,13 @@
 import { ref, computed, nextTick, defineEmits } from "vue";
 import { useClipboard } from "@vueuse/core";
 
-const emit = defineEmits(["update-selected-item", "update-new-item"]);
+const emit = defineEmits([
+  "update-selected-item",
+  "update-new-item",
+  "open-dialog-info",
+]);
+
+// const dialogInfo = defineModel("dialogInfo");
 
 const props = defineProps({
   items: {
@@ -467,7 +473,7 @@ const newItem = ref(props.newItem);
 
 // console.log("props.error", props.error);
 const panel = ref([]);
-const dialogInfo = ref(false);
+// const dialogInfo = ref(false);
 
 const dialogEdit = defineModel("dialogEdit");
 const dialogAdd = ref(false);
@@ -478,21 +484,21 @@ const successAdd = ref(false);
 const dialogLoader = ref(false);
 const dialog = ref(true);
 
-const copyInfo = ref(false);
-const copyText = ref("");
+// const copyInfo = ref(false);
+// const copyText = ref("");
 
 const isAddingItem = ref(false);
 const isAddingItemName = ref(false);
 
-const { copy } = useClipboard();
+// const { copy } = useClipboard();
 
-const copyToClipboard = (text) => {
-  if (text) {
-    copy(text);
-    copyText.value = text;
-    copyInfo.value = true;
-  }
-};
+// const copyToClipboard = (text) => {
+//   if (text) {
+//     copy(text);
+//     copyText.value = text;
+//     copyInfo.value = true;
+//   }
+// };
 
 const openLink = (url) => {
   if (url) {
@@ -577,10 +583,12 @@ const resetSuccessFlags = async () => {
   successEdit.value = false;
   successAdd.value = false;
 };
+
+const dialogInfo = defineModel("dialogInfo");
 const openDialogInfo = (item) => {
   resetSuccessFlags();
 
-  emit("update-selected-item", item);
+  emit("open-dialog-info", item);
   console.log("Selected Item:", copySelectedItem.name);
 
   dialogInfo.value = true;
