@@ -2,19 +2,11 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Сервисы</h1>
-      <!-- services {{ services }} -->
+
       <TagAccordion
         :items="services"
         :isLoading="isLoading"
-        :virtualMachines="virtualMachineNames"
-        :addService="addService"
-        :updateService="updateService"
-        :deleteService="deleteService"
         :error="error"
-        :selectedItem="selectedItem"
-        :newItem="newItem"
-        :validateForm="validateForm"
-        :validationRules="validationRules"
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
         v-model:dialogEdit="dialogEdit"
@@ -22,36 +14,27 @@
         v-model:dialogInfo="dialogInfo"
         @open-dialog-info="openDialogInfo"
         @add-item="AddItemOpenDialog"
+        @open-dialog-delete="dialogDeleteSelectedItem"
       />
       <ModalEdit
         v-model:dialog="dialogEdit"
         :item="selectedItem"
-        :title="'Добавить новый элемент'"
+        :title="'Изменить элемент'"
         :virtualMachines="virtualMachineNames"
         :uniqueTagsList="uniqueTagsList"
         :validationRules="validationRules"
-        @save-items="editItem"
+        @save-items="editSelectedItem"
         @update-selected-item="updateSelectedItem"
         @dialog-close="dialogClose"
         @validate-form="validateForm"
         v-model:disabled="disabledSave"
       />
       <DialogLoader :dialogLoader="dialogLoader" />
-      <SnackbarEdit
-        :successEdit="successEdit"
-        :SelectedItemName="selectedItem.name"
-      />
 
       <ModalInfo
         v-model:dialogInfo="dialogInfo"
         :item="selectedItem"
-        v-model:copyInfo="successCopyInfo"
-        v-model:copyText="copyText"
-      />
-
-      <SnackbarCopy
-        v-model:successCopyInfo="successCopyInfo"
-        :copyText="copyText"
+        @copy-to-clipboard="copyToClipboard"
       />
 
       <ModalAdd
@@ -61,73 +44,81 @@
         :virtualMachines="virtualMachineNames"
         :uniqueTagsList="uniqueTagsList"
         :validationRules="validationRules"
-        @add-item="addItem"
+        @add-item="addSelectedItem"
         @dialog-close="dialogClose"
         @validate-form="validateForm"
         v-model:disabled="disabledSave"
       />
 
-      <SnackbarAdd :successEdit="successAdd" :SelectedItemName="newItem.name" />
+      <ModalDelete
+        v-model:dialogDelete="dialogDelete"
+        :itemName="selectedItem.name"
+        @delete-item="deleteSelectedItem"
+      />
+
+      <Snackbar
+        v-model:success="success"
+        :color="snackbarColor"
+        :message="snackbarMessage"
+      />
     </v-container>
   </v-main>
 </template>
 <script setup>
 import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
-// import { useServicesStore } from "@/stores/services";
-import { useVirtualMachines } from "@/composables/useVirtualMachines";
-import { useServices } from "@/composables/useServices";
+
 import ModalEdit from "@/components/ModalEdit.vue";
 import DialogLoader from "@/components/DialogLoader.vue";
-import SnackbarEdit from "@/components/SnackbarEdit.vue";
 import ModalInfo from "@/components/ModalInfo.vue";
-import SnackbarCopy from "@/components/SnackbarCopy.vue";
 import ModalAdd from "@/components/ModalAdd.vue";
+import Snackbar from "@/components/Snackbar.vue";
+import { useClipboard } from "@vueuse/core";
 
-const dialogEdit = ref(false);
-const dialogInfo = ref(false);
-const dialogAdd = ref(false);
+import { useServicesApi } from "@/composables/useServicesApi";
+import { useItemOperations } from "@/composables/useItemOperations";
 
-const successCopyInfo = ref(false);
 const copyText = ref("");
 
 const router = useRouter();
+
 const {
   data,
   isLoading,
   error,
   getServices,
   addServices,
-  updateService: updateServiceUse,
-  deleteService: deleteServiceUse,
-} = useServices();
+  updateServiceUse,
+  deleteServiceUse,
+  virtualMachinesData,
+  getVirtualMachines,
+} = useServicesApi();
+
+const {
+  services,
+  dialogLoader,
+  dialogEdit,
+  success,
+  snackbarMessage,
+  snackbarColor,
+  editItem,
+  setScrollPosition,
+  addItem,
+  dialogAdd,
+  dialogDelete,
+  dialogInfo,
+  deleteItemConfirmed,
+} = useItemOperations();
 
 onMounted(async () => {
   try {
-    console.error("Ошdd");
-    await getServices();
+    await Promise.all([getServices(), getVirtualMachines()]);
   } catch (e) {
-    console.error("Ошибка при получения сервиса:", e);
+    console.error("Ошибка при загрузке данных:", e);
     throw e;
   }
-  // Debugging: log items to check if they are populated
-  console.log(data.value);
 });
 
-const services = computed(() => data.value?.data || []);
-
-const { data: virtualMachinesData, getVirtualMachines } = useVirtualMachines();
-
-onMounted(async () => {
-  try {
-    await getVirtualMachines();
-  } catch (e) {
-    console.error("Ошибка при получения сервиса:", e);
-    throw e;
-  }
-  // Debugging: log items to check if they are populated
-  console.log(services.value);
-});
 const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
 
 // Вычисляемое свойство для списка виртуальных машин
@@ -177,19 +168,12 @@ const openDialogInfo = (item) => {
 };
 
 const AddItemOpenDialog = (tag) => {
-  // scrollPosition = window.scrollY;
-  // console.log("1scrollPosition", scrollPosition);
-
+  resetNewItem();
   if (tag == "Без тега") tag = null;
   newItem.value.tags = tag;
-
   dialogAdd.value = true;
-  console.log("dialogAdd", dialogAdd.value);
-  console.log("newItem", newItem.value);
 };
 const updateSelectedItem = (item) => {
-  // scrollPosition = window.scrollY;
-  // console.log("1scrollPosition", scrollPosition);
   console.log("я здесь", item);
   selectedItem.value = item;
   dialogEdit.value = true;
@@ -211,44 +195,15 @@ const resetNewItem = () => {
   };
 };
 
-const addService = async (newService) => {
-  const vmId = getVirtualMachineIdByName(newService.virtual_machine);
+const { copy } = useClipboard();
 
-  // Создаем копию newService и обновляем её
-  const copyNewService = {
-    ...newService,
-    virtual_machine: vmId,
-  };
-
-  console.log("newService", copyNewService);
-  try {
-    const response = await addServices(copyNewService);
-    await getServices();
-    return response;
-  } catch (e) {
-    console.error("Ошибка при добавлении сервиса:", e);
-    throw e;
-  }
-};
-
-const updateService = async (selectedItem) => {
-  console.log("33selectedItem", selectedItem);
-  try {
-    await updateServiceUse(selectedItem.id, selectedItem);
-    await getServices();
-  } catch (e) {
-    console.error("Ошибка при редактирования сервиса:", e);
-    throw e;
-  }
-};
-
-const deleteService = async (id) => {
-  try {
-    await deleteServiceUse(id);
-    await getServices();
-  } catch (e) {
-    console.error("Ошибка при удалении сервиса:", e);
-    throw e;
+const copyToClipboard = (text) => {
+  if (text) {
+    console.log("copyToClipboard", text);
+    copy(text);
+    snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
+    snackbarColor.value = "blue-darken-3";
+    success.value = true;
   }
 };
 
@@ -282,76 +237,28 @@ const validationRules = {
 
 let editItemTimeout;
 
-const resetSuccessFlags = async () => {
-  // successDelete.value = false;
-  successEdit.value = false;
-  // successAdd.value = false;
-};
-const dialogLoader = ref(false);
-const successEdit = ref(false);
-const successAdd = ref(false);
-// Обычная переменная для хранения позиции прокрутки
+// const dialogLoader = ref(false);
+
 let scrollPosition = 0;
-
-const editItem = async () => {
-  console.log("111selectedItem", selectedItem.value);
-  dialogEdit.value = false;
-  dialogLoader.value = true;
-  successEdit.value = false;
-  // isAddingItem.value = true;
-
-  try {
-    // await updateServiceUse(selectedItem);
-    const response = await updateService(selectedItem.value);
-    successEdit.value = true;
-    dialogLoader.value = false;
-    console.log("successEdit", successEdit.value);
-    // Очистка предыдущего таймера (если есть)
-    clearTimeout(editItemTimeout);
-    // isAddingItemName.value = selectedItem.value.id;
-    // Используем nextTick, чтобы дождаться обновления DOM
-    await nextTick();
-    window.scrollTo(0, scrollPosition);
-    console.log("2scrollPosition", scrollPosition);
-    editItemTimeout = setTimeout(() => {
-      successEdit.value = false;
-      console.log("successEdit", successEdit.value);
-      // isAddingItem.value = false;
-    }, 5000);
-  } catch (error) {
-    console.error("Ошибка при редактировании записи:", error);
-    successEdit.value = false;
-    dialogLoader.value = false;
-  }
+const editSelectedItem = async () => {
+  setScrollPosition(window.scrollY);
+  await editItem(selectedItem.value);
 };
 
-const addItem = async (newItem) => {
-  console.log("newItem", newItem);
-  dialogAdd.value = false;
-  dialogLoader.value = true;
-  successAdd.value = false;
-  // isAddingItem.value = true;
-  try {
-    const response = await addService(newItem);
+const addSelectedItem = async () => {
+  setScrollPosition(window.scrollY);
+  await addItem(newItem.value);
+};
 
-    // Проверьте структуру ответа
-    console.log("Response from addService:", response);
-    successAdd.value = true;
-    dialogLoader.value = false;
+const dialogDeleteSelectedItem = (item) => {
+  selectedItem.value = item;
+  dialogDelete.value = true;
+};
 
-    console.log("newItem.value", newItem);
-    // isAddingItemName.value = response.id;
-    await nextTick();
-    window.scrollTo(0, scrollPosition);
-    setTimeout(() => {
-      successAdd.value = false;
-      // isAddingItem.value = false;
-    }, 5000);
-  } catch (error) {
-    console.error("Ошибка при добавлении записи:", error);
-    successAdd.value = false;
-    dialogLoader.value = false;
-  }
+const deleteSelectedItem = async () => {
+  setScrollPosition(window.scrollY);
+  console.log("selectedItem.value", selectedItem.value);
+  await deleteItemConfirmed(selectedItem.value);
 };
 
 const dialogClose = () => {

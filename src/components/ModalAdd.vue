@@ -1,5 +1,4 @@
 <template>
-  dialogAdd {{ dialogAdd }}
   <v-dialog v-model="dialogAdd" max-width="500">
     <v-card>
       <v-card-title>
@@ -69,7 +68,12 @@
         ></v-select>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="$emit('add-item', item)">Добавить</v-btn>
+        <v-btn
+          text
+          @click="$emit('add-item', item)"
+          :disabled="!CheckFalidate(item)"
+          >Добавить</v-btn
+        >
         <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
       </v-card-actions>
     </v-card>
@@ -108,6 +112,11 @@ const handleSave = () => {
 
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
+};
+
+const CheckFalidate = (item) => {
+  emit("validate-form", item);
+  return disabled.value;
 };
 
 const passwordVisible = ref(false);

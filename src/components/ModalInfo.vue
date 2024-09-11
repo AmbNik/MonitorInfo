@@ -10,7 +10,10 @@
         <p>
           <strong>Логин:</strong>
           {{ item?.login }}
-          <v-icon @click="copyToClipboard(item?.login)" class="ml-2 small-icon">
+          <v-icon
+            @click="$emit('copy-to-clipboard', item?.login)"
+            class="ml-2 small-icon"
+          >
             mdi-content-copy
           </v-icon>
         </p>
@@ -18,7 +21,7 @@
           <strong>Пароль:</strong>
           {{ item?.password }}
           <v-icon
-            @click="copyToClipboard(item?.password)"
+            @click="$emit('copy-to-clipboard', item?.password)"
             class="ml-2 small-icon"
           >
             mdi-content-copy
@@ -37,22 +40,8 @@
   </v-dialog>
 </template>
 <script setup>
-import { useClipboard } from "@vueuse/core";
-
-const copyText = defineModel("copyText");
-const copyInfo = defineModel("copyInfo");
-
-const { copy } = useClipboard();
-
-const copyToClipboard = (text) => {
-  if (text) {
-    copy(text);
-    copyText.value = text;
-    copyInfo.value = true;
-  }
-};
-
 const dialogInfo = defineModel("dialogInfo");
+const emit = defineEmits("copy-to-clipboard");
 const props = defineProps({
   item: Object,
 });
