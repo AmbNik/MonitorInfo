@@ -1,24 +1,20 @@
-// src/composables/useItemOperations.js
 import { ref, computed } from "vue";
-// import { useServicesApi } from "./useServicesApi";
-import { useVirtualMachines } from "@/composables/useVirtualMachines";
+import { useApplicationsApi } from "./useApplicationsApi";
 
-export function useItemOperationsVirtualMachine() {
+export function useItemOperationsApplications() {
   const {
     data,
-    isLoading,
-    error,
-    getVirtualMachines,
-    updateVirtualMachines,
-    deleteVirtualMachines,
-    addVirtualMachines,
-  } = useVirtualMachines();
+    addApplications,
+    updateApplicationsUse,
+    deleteApplicationsUse,
+    getApplications,
+  } = useApplicationsApi();
 
   onMounted(async () => {
     try {
-      await getVirtualMachines();
+      await getApplications();
     } catch (e) {
-      console.error("Ошибка при загрузке виртуальных машин:", e);
+      console.error("Ошибка при загрузке сервисов:", e);
     }
   });
 
@@ -35,7 +31,7 @@ export function useItemOperationsVirtualMachine() {
     console.error(message);
   };
 
-  const virtualMachines = computed(() => data.value?.data || []);
+  const applications = computed(() => data.value?.data || []);
 
   const dialogLoader = ref(false);
   const success = ref(false);
@@ -51,9 +47,9 @@ export function useItemOperationsVirtualMachine() {
     dialogLoader.value = true;
     success.value = false;
     try {
-      const response = await addVirtualMachines(newItem);
+      const response = await addApplications(newItem);
       newItem.id = response.id;
-      virtualMachines.value.push(newItem);
+      applications.value.push(newItem);
       handleSuccess(`Запись ${newItem.name} успешно добавлена`);
       dialogAdd.value = false;
       return response;
@@ -69,13 +65,14 @@ export function useItemOperationsVirtualMachine() {
     success.value = false;
 
     try {
-      await updateVirtualMachines(selectedItem.id, selectedItem);
-      const index = virtualMachines.value.findIndex(
+      await updateApplicationsUse(selectedItem.id, selectedItem);
+      const index = applications.value.findIndex(
         (service: any) => service.id === selectedItem.id
       );
       if (index !== -1) {
-        virtualMachines.value[index] = selectedItem;
+        applications.value[index] = selectedItem;
       }
+
       handleSuccess(`Запись ${selectedItem.name} успешно изменена`);
       dialogEdit.value = false;
     } catch (error) {
@@ -90,12 +87,12 @@ export function useItemOperationsVirtualMachine() {
     success.value = false;
     try {
       dialogDelete.value = false;
-      await deleteVirtualMachines(selectedItem.id);
-      const index = virtualMachines.value.findIndex(
+      await deleteApplicationsUse(selectedItem.id);
+      const index = applications.value.findIndex(
         (service: any) => service.id === selectedItem.id
       );
       if (index !== -1) {
-        virtualMachines.value.splice(index, 1);
+        applications.value.splice(index, 1);
       }
       handleSuccess(`Запись ${selectedItem.name} успешно удалена`);
     } catch (error) {
@@ -107,9 +104,7 @@ export function useItemOperationsVirtualMachine() {
 
   return {
     dialogLoader,
-    isLoading,
     success,
-    error,
     snackbarMessage,
     snackbarColor,
     addItem,
@@ -119,6 +114,6 @@ export function useItemOperationsVirtualMachine() {
     dialogInfo,
     dialogAdd,
     dialogDelete,
-    virtualMachines,
+    applications,
   };
 }

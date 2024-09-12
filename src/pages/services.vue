@@ -131,7 +131,7 @@
           <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
           <p>
             <strong>Виртуальная машина:</strong>
-            {{ selectedItem?.virtual_machine }}
+            {{ getVirtualMachineIdByName(selectedItem?.virtual_machine) }}
           </p>
         </template>
 
@@ -232,12 +232,13 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
-import DialogLoader from "@/components/DialogLoader.vue";
-import Snackbar from "@/components/Snackbar.vue";
+import DialogLoader from "@/components/modals/DialogLoader.vue";
+import Snackbar from "@/components/UI/Snackbar.vue";
+import Modal from "@/components/modals/Modal.vue";
 import { useClipboard } from "@vueuse/core";
-import Modal from "@/components/Modal.vue";
-import { useServicesApi } from "@/composables/useServicesApi";
-import { useItemOperations } from "@/composables/useItemOperations";
+
+import { useServicesApi } from "@/composables/services/useServicesApi";
+import { useItemOperations } from "@/composables/services/useItemOperations";
 
 const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
 
@@ -309,8 +310,9 @@ onMounted(async () => {
 console.log("virtualMachineNames", virtualMachineNames);
 
 const getVirtualMachineIdByName = (id) => {
+  console.log("id", id);
   const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
-  return vm ? vm.id : null;
+  return vm ? vm.name : "не указано";
 };
 
 const selectedItem = ref({

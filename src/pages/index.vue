@@ -7,8 +7,4 @@
 </template>
 <script setup></script>
 
-<style>
-.my-2 {
-  margin: 8px 0;
-}
-</style>
+<style></style>

@@ -1,6 +1,6 @@
 // servicesApi.js
-import { useServices } from "@/composables/useServices";
-import { useVirtualMachines } from "@/composables/useVirtualMachines";
+import { useServices } from "@/composables/services/useServices";
+import { useVirtualMachines } from "@/composables/virtualMachines/useVirtualMachines";
 
 export function useServicesApi() {
   const {

@@ -43,7 +43,7 @@
 <script>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import SearchBar from "@/components/SearchBar.vue"; // Adjust path as necessary
+import SearchBar from "@/components/navigation/SearchBar.vue"; // Adjust path as necessary
 
 export default {
   components: {

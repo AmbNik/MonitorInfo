@@ -199,13 +199,13 @@
 import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
 
-import DialogLoader from "@/components/DialogLoader.vue";
-import Modal from "@/components/Modal.vue";
-import Snackbar from "@/components/Snackbar.vue";
+import DialogLoader from "@/components/modals/DialogLoader.vue";
+import Snackbar from "@/components/UI/Snackbar.vue";
+import Modal from "@/components/modals/Modal.vue";
 import { useClipboard } from "@vueuse/core";
 
 // import { useServicesApi } from "@/composables/useServicesApi";
-import { useItemOperationsVirtualMachine } from "@/composables/useItemOperationsVirtualMachine";
+import { useItemOperationsVirtualMachine } from "@/composables/virtualMachines/useItemOperationsVirtualMachine";
 
 const virtualMachines = computed(() => virtualMachinesData.value || []);
 const uniqueTagsList = computed(() => {

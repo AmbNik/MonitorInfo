@@ -43,10 +43,10 @@
 <script setup>
 import { ref, computed, nextTick, defineEmits } from "vue";
 import { useClipboard } from "@vueuse/core";
-import SkeletonLoader from "@/components/SkeletonLoader.vue";
-import AlertError from "@/components/AlertError.vue";
-import CardAdd from "@/components/CardAdd.vue";
-import Cards from "@/components/Cards.vue";
+import SkeletonLoader from "@/components/UI/SkeletonLoader.vue";
+import AlertError from "@/components/UI/AlertError.vue";
+import CardAdd from "@/components/UI/CardAdd.vue";
+import Cards from "@/components/UI/Cards.vue";
 
 const activePanels = ref([]);
 
