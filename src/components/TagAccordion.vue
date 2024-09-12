@@ -25,7 +25,15 @@
             @open-link="openLink"
             @open-edit-dialog="openEditDialog"
             @open-delete-dialog="openDeleteDialog"
-          />
+          >
+            <template v-slot:name="{ item }">
+              <slot name="name" :item="item"></slot>
+            </template>
+
+            <template v-slot:description="{ item }">
+              <slot name="description" :item="item"></slot>
+            </template>
+          </Cards>
         </v-row>
       </v-expansion-panel-text>
     </v-expansion-panel>
@@ -109,16 +117,13 @@ const openDialogInfo = (item) => {
 
 const openEditDialog = (item) => {
   emit("update-selected-item", item);
-  emit("scroll-position-update", window.scrollY);
 };
 
 const openDeleteDialog = (item) => {
   emit("open-dialog-delete", item);
-  emit("scroll-position-update", window.scrollY);
 };
 
 const openAddDialog = (tag = null) => {
-  emit("scroll-position-update", window.scrollY);
   emit("add-item", tag);
 };
 </script>

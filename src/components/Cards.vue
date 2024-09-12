@@ -20,9 +20,7 @@
         >
           <v-card-title>
             <v-row class="align-center justify-space-between justify-end">
-              <v-col class="text-truncate" style="max-width: 350px">
-                {{ item.name }}
-              </v-col>
+              <slot name="name" :item="item"> </slot>
               <v-col class="d-flex justify-end"> </v-col>
               <v-icon
                 @click.stop="$emit('open-link', item.url)"
@@ -60,11 +58,7 @@
               </v-menu>
             </v-row>
           </v-card-title>
-
-          <v-card-subtitle>{{ item.url }}</v-card-subtitle>
-          <v-card-text class="text-truncate" style="max-width: 350px">
-            {{ item.description }}
-          </v-card-text>
+          <slot name="description" :item="item"> </slot>
         </v-card>
       </template>
     </v-hover>

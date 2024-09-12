@@ -2,42 +2,247 @@
   <v-main style="margin-top: 100px">
     <v-container>
       <h1>Виртуальные машины</h1>
-      <TagAccordionVirtualMachines
-        :items="data"
+      <TagAccordion
+        :items="virtualMachines"
         :isLoading="isLoading"
-        :addService="addVirtualMachines"
-        :updateService="updateVirtualMachines"
-        :deleteService="deleteVirtualMachines"
         :error="error"
-        :selectedItem="selectedItem"
-        :newItem="newItem"
-        :validateForm="validateForm"
-        :validationRules="validationRules"
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
+        v-model:dialogEdit="dialogEdit"
+        v-model:dialogInfo="dialogInfo"
+        @open-dialog-info="openDialogInfo"
+        @add-item="AddItemOpenDialog"
+        @open-dialog-delete="dialogDeleteSelectedItem"
+      >
+        <template v-slot:name="{ item }">
+          <v-col class="text-truncate" style="max-width: 350px">
+            {{ item.name }}
+          </v-col>
+        </template>
+
+        <template v-slot:description="{ item }">
+          <v-card-subtitle>{{ item.ip }}</v-card-subtitle>
+          <v-card-text class="text-truncate" style="max-width: 350px">
+            {{ item.description }}
+          </v-card-text>
+        </template>
+      </TagAccordion>
+      <Modal v-model:dialog="dialogEdit" title="Изменить элемент"
+        ><template v-slot:body>
+          <v-text-field
+            label="Название"
+            v-model="сopySelectedItem.value.name"
+            :rules="[validationRules.name]"
+            required
+            class="mb-4"
+            dense
+          ></v-text-field>
+          <v-text-field
+            label="URL"
+            v-model="сopySelectedItem.value.ip"
+            :rules="validationRules.ip"
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Логин"
+            v-model="сopySelectedItem.value.login"
+            :rules="[validationRules.login]"
+            dense
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Пароль"
+            required
+            v-model="сopySelectedItem.value.password"
+            :type="passwordVisible ? 'text' : 'password'"
+            :rules="[validationRules.password]"
+            dense
+            class="mb-4"
+          >
+            <template v-slot:append-inner>
+              <v-btn variant="text" icon @click="togglePasswordVisibility">
+                <v-icon>
+                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+                </v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <v-combobox
+            label="Теги"
+            v-model="сopySelectedItem.value.tags"
+            :items="uniqueTagsListModal"
+          ></v-combobox>
+        </template>
+        <template v-slot:actions>
+          <v-btn
+            text
+            @click="handleSave(сopySelectedItem.value)"
+            :disabled="!validateForm(сopySelectedItem.value)"
+            >Сохранить</v-btn
+          >
+          <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
+        </template>
+      </Modal>
+      <DialogLoader :dialogLoader="dialogLoader" />
+
+      <Modal v-model:dialog="dialogInfo" :title="selectedItem?.name">
+        <v-card-subtitle>{{ selectedItem?.id }}</v-card-subtitle>
+        <template v-slot:body>
+          <p><strong>ip:</strong> {{ selectedItem?.ip }}</p>
+          <p>
+            <strong>Логин:</strong>
+            {{ selectedItem.login }}
+            <v-icon
+              @click="copyToClipboard(selectedItem?.login)"
+              class="ml-2 small-icon"
+            >
+              mdi-content-copy
+            </v-icon>
+          </p>
+          <p>
+            <strong>Пароль:</strong>
+            {{ selectedItem?.password }}
+            <v-icon
+              @click="copyToClipboard(selectedItem?.password)"
+              class="ml-2 small-icon"
+            >
+              mdi-content-copy
+            </v-icon>
+          </p>
+          <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
+        </template>
+
+        <template v-slot:actions>
+          <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
+        </template>
+      </Modal>
+
+      <Modal v-model:dialog="dialogAdd" title="Добавить новый элемент">
+        <template v-slot:body>
+          <v-text-field
+            label="Название"
+            v-model="newItem.name"
+            :rules="[validationRules.name]"
+            required
+            class="mb-4"
+            dense
+          ></v-text-field>
+          <v-text-field
+            label="ip"
+            v-model="newItem.ip"
+            :rules="validationRules.ip"
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Логин"
+            v-model="newItem.login"
+            :rules="[validationRules.login]"
+            dense
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Пароль"
+            required
+            v-model="newItem.password"
+            :type="passwordVisible ? 'text' : 'password'"
+            :rules="[validationRules.password]"
+            dense
+            class="mb-4"
+          >
+            <template v-slot:append-inner>
+              <v-btn variant="text" icon @click="togglePasswordVisibility">
+                <v-icon>
+                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+                </v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <v-combobox
+            label="Теги"
+            v-model="newItem.tags"
+            :items="uniqueTagsListModal"
+          ></v-combobox>
+        </template>
+
+        <template v-slot:actions>
+          <v-btn
+            text
+            @click="addSelectedItem()"
+            :disabled="!validateForm(newItem)"
+            >Добавить</v-btn
+          >
+          <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
+        </template>
+      </Modal>
+
+      <ModalDelete
+        v-model:dialogDelete="dialogDelete"
+        :itemName="selectedItem.name"
+        @delete-item="deleteSelectedItem"
+      />
+
+      <Snackbar
+        v-model:success="success"
+        :color="snackbarColor"
+        :message="snackbarMessage"
       />
     </v-container>
   </v-main>
 </template>
 <script setup>
-import { ref, computed, onMounted, toRefs } from "vue";
+import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
-import { useVirtualMachines } from "@/composables/useVirtualMachines";
 
+import DialogLoader from "@/components/DialogLoader.vue";
+import Modal from "@/components/Modal.vue";
+import Snackbar from "@/components/Snackbar.vue";
+import { useClipboard } from "@vueuse/core";
+
+// import { useServicesApi } from "@/composables/useServicesApi";
+import { useItemOperationsVirtualMachine } from "@/composables/useItemOperationsVirtualMachine";
+
+const virtualMachines = computed(() => virtualMachinesData.value || []);
+const uniqueTagsList = computed(() => {
+  const tags = new Set();
+
+  virtualMachines.value.forEach((service) => {
+    if (service.tags !== null) tags.add(service.tags);
+  });
+
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  return sortedTags;
+});
+
+const copyText = ref("");
+const passwordVisible = ref(false);
+
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value;
+};
 const router = useRouter();
 
 const {
-  data: virtualMachinesData,
-  isLoading,
   error,
-  getVirtualMachines,
-  updateVirtualMachines: updateVirtualMachinesUse,
-  deleteVirtualMachines: deleteVirtualMachinesUse,
-  addVirtualMachines: addVirtualMachinesUse,
-} = useVirtualMachines();
-
-// Use `data.data` to get items from servicesStore
-const data = computed(() => virtualMachinesData.value?.data || []);
+  isLoading,
+  virtualMachines: virtualMachinesData,
+  dialogLoader,
+  dialogEdit,
+  success,
+  snackbarMessage,
+  snackbarColor,
+  editItem,
+  addItem,
+  dialogAdd,
+  dialogDelete,
+  dialogInfo,
+  deleteItemConfirmed,
+} = useItemOperationsVirtualMachine();
 
 const selectedItem = ref({
   id: "",
@@ -57,8 +262,25 @@ const newItem = ref({
   tags: "",
 });
 
-const updateSelectedItem = (item) => {
+const openDialogInfo = (item) => {
+  console.log("openDialogInfo", item);
   selectedItem.value = item;
+  dialogInfo.value = true;
+};
+
+const AddItemOpenDialog = (tag) => {
+  resetNewItem();
+  if (tag == "Без тега") tag = null;
+  newItem.value.tags = tag;
+  dialogAdd.value = true;
+};
+
+const сopySelectedItem = ref({});
+const updateSelectedItem = (item) => {
+  console.log("я здесь", item);
+  selectedItem.value = item;
+  сopySelectedItem.value = ref({ ...item });
+  dialogEdit.value = true;
 };
 
 const resetNewItem = () => {
@@ -72,49 +294,21 @@ const resetNewItem = () => {
   };
 };
 
-onMounted(async () => {
-  try {
-    await getVirtualMachines();
-  } catch (e) {
-    console.error("Ошибка при получения сервиса:", e);
-    throw e;
-  }
-  // Debugging: log items to check if they are populated
-  console.log(data.value);
-});
+const { copy } = useClipboard();
 
-const addVirtualMachines = async (newVirtualMachines) => {
-  console.log("newVirtualMachines", newVirtualMachines);
-  try {
-    const response = await addVirtualMachinesUse(newVirtualMachines);
-    await getVirtualMachines();
-    return response;
-  } catch (e) {
-    console.error("Ошибка при добавлении сервиса:", e);
-    throw e;
+const copyToClipboard = (text) => {
+  if (text) {
+    console.log("copyToClipboard", text);
+    copy(text);
+    snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
+    snackbarColor.value = "blue-darken-3";
+    success.value = true;
   }
 };
-
-const updateVirtualMachines = async (selectedItem) => {
-  try {
-    await updateVirtualMachinesUse(selectedItem.id, selectedItem);
-    await getVirtualMachines();
-  } catch (e) {
-    console.error("Ошибка при редактирования сервиса:", e);
-    throw e;
-  }
+const handleSave = (item) => {
+  updateSelectedItem(item);
+  editSelectedItem();
 };
-
-const deleteVirtualMachines = async (id) => {
-  try {
-    await deleteVirtualMachinesUse(id);
-    await getVirtualMachines();
-  } catch (e) {
-    console.error("Ошибка при удалении сервиса:", e);
-    throw e;
-  }
-};
-
 // Функция для проверки IPv4
 const isValidIPv4 = (ip) => {
   const ipv4Regex =
@@ -128,22 +322,24 @@ const isValidIPv6 = (ip) => {
   return ipv6Regex.test(ip);
 };
 
+let disabledSave = ref(false);
+// Функция валидации формы
 const validateForm = (item) => {
   const ipRegex =
     /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
   const ipRegexV6 =
     /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
 
-  // Проверка всех полей
-  return (
+  disabledSave.value =
     item.name.trim() !== "" &&
     item.ip.trim() !== "" &&
     (ipRegex.test(item.ip) || ipRegexV6.test(item.ip)) &&
     item.login.trim() !== "" &&
-    item.password.trim() !== ""
-  );
+    item.password.trim() !== "";
+  return disabledSave.value;
 };
 
+// Определите правила валидации
 const validationRules = {
   name: (v) => !!v || "name обязательно",
   ip: [
@@ -156,10 +352,28 @@ const validationRules = {
   login: (v) => !!v || "login обязательно",
   password: (v) => !!v || "password обязательно",
 };
+
+const editSelectedItem = async () => {
+  await editItem(selectedItem.value);
+};
+
+const addSelectedItem = async () => {
+  await addItem(newItem.value);
+};
+
+const dialogDeleteSelectedItem = (item) => {
+  selectedItem.value = item;
+  dialogDelete.value = true;
+};
+
+const deleteSelectedItem = async () => {
+  console.log("selectedItem.value", selectedItem.value);
+  await deleteItemConfirmed(selectedItem.value);
+};
+
+const dialogClose = () => {
+  dialogEdit.value = false;
+};
 </script>
 
-<style>
-.my-2 {
-  margin: 8px 0;
-}
-</style>
+<style></style>

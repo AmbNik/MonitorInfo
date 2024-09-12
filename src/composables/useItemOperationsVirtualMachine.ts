@@ -1,16 +1,24 @@
 // src/composables/useItemOperations.js
 import { ref, computed } from "vue";
-import { useServicesApi } from "./useServicesApi";
+// import { useServicesApi } from "./useServicesApi";
+import { useVirtualMachines } from "@/composables/useVirtualMachines";
 
-export function useItemOperations() {
-  const { data, addServices, updateServiceUse, deleteServiceUse, getServices } =
-    useServicesApi();
+export function useItemOperationsVirtualMachine() {
+  const {
+    data,
+    isLoading,
+    error,
+    getVirtualMachines,
+    updateVirtualMachines,
+    deleteVirtualMachines,
+    addVirtualMachines,
+  } = useVirtualMachines();
 
   onMounted(async () => {
     try {
-      await getServices();
+      await getVirtualMachines();
     } catch (e) {
-      console.error("Ошибка при загрузке сервисов:", e);
+      console.error("Ошибка при загрузке виртуальных машин:", e);
     }
   });
 
@@ -27,7 +35,7 @@ export function useItemOperations() {
     console.error(message);
   };
 
-  const services = computed(() => data.value?.data || []);
+  const virtualMachines = computed(() => data.value?.data || []);
 
   const dialogLoader = ref(false);
   const success = ref(false);
@@ -43,9 +51,9 @@ export function useItemOperations() {
     dialogLoader.value = true;
     success.value = false;
     try {
-      const response = await addServices(newItem);
+      const response = await addVirtualMachines(newItem);
       newItem.id = response.id;
-      services.value.push(newItem);
+      virtualMachines.value.push(newItem);
       handleSuccess(`Запись ${newItem.name} успешно добавлена`);
       dialogAdd.value = false;
       return response;
@@ -61,14 +69,13 @@ export function useItemOperations() {
     success.value = false;
 
     try {
-      await updateServiceUse(selectedItem.id, selectedItem);
-      const index = services.value.findIndex(
+      await updateVirtualMachines(selectedItem.id, selectedItem);
+      const index = virtualMachines.value.findIndex(
         (service: any) => service.id === selectedItem.id
       );
       if (index !== -1) {
-        services.value[index] = selectedItem;
+        virtualMachines.value[index] = selectedItem;
       }
-
       handleSuccess(`Запись ${selectedItem.name} успешно изменена`);
       dialogEdit.value = false;
     } catch (error) {
@@ -83,12 +90,12 @@ export function useItemOperations() {
     success.value = false;
     try {
       dialogDelete.value = false;
-      await deleteServiceUse(selectedItem.id);
-      const index = services.value.findIndex(
+      await deleteVirtualMachines(selectedItem.id);
+      const index = virtualMachines.value.findIndex(
         (service: any) => service.id === selectedItem.id
       );
       if (index !== -1) {
-        services.value.splice(index, 1);
+        virtualMachines.value.splice(index, 1);
       }
       handleSuccess(`Запись ${selectedItem.name} успешно удалена`);
     } catch (error) {
@@ -100,7 +107,9 @@ export function useItemOperations() {
 
   return {
     dialogLoader,
+    isLoading,
     success,
+    error,
     snackbarMessage,
     snackbarColor,
     addItem,
@@ -110,6 +119,6 @@ export function useItemOperations() {
     dialogInfo,
     dialogAdd,
     dialogDelete,
-    services,
+    virtualMachines,
   };
 }

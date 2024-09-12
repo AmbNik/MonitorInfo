@@ -10,45 +10,210 @@
         @update-selected-item="updateSelectedItem"
         @update-new-item="resetNewItem"
         v-model:dialogEdit="dialogEdit"
-        @scroll-position-update="scrollPositionUpdate"
         v-model:dialogInfo="dialogInfo"
         @open-dialog-info="openDialogInfo"
         @add-item="AddItemOpenDialog"
         @open-dialog-delete="dialogDeleteSelectedItem"
-      />
-      <ModalEdit
-        v-model:dialog="dialogEdit"
-        :item="selectedItem"
-        :title="'Изменить элемент'"
-        :virtualMachines="virtualMachineNames"
-        :uniqueTagsList="uniqueTagsList"
-        :validationRules="validationRules"
-        @save-items="editSelectedItem"
-        @update-selected-item="updateSelectedItem"
-        @dialog-close="dialogClose"
-        @validate-form="validateForm"
-        v-model:disabled="disabledSave"
-      />
+      >
+        <template v-slot:name="{ item }">
+          <v-col class="text-truncate" style="max-width: 350px">
+            {{ item.name }}
+          </v-col>
+        </template>
+
+        <template v-slot:description="{ item }">
+          <v-card-subtitle>{{ item.url }}</v-card-subtitle>
+          <v-card-text class="text-truncate" style="max-width: 350px">
+            {{ item.description }}
+          </v-card-text>
+        </template>
+      </TagAccordion>
+      <Modal v-model:dialog="dialogEdit" title="Изменить элемент">
+        <template v-slot:body>
+          <v-text-field
+            label="Название"
+            v-model="сopySelectedItem.value.name"
+            :rules="[validationRules.name]"
+            required
+            class="mb-4"
+            dense
+          ></v-text-field>
+          <v-text-field
+            label="URL"
+            v-model="сopySelectedItem.value.url"
+            :rules="validationRules.url"
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-textarea
+            label="Описание"
+            v-model="сopySelectedItem.value.description"
+            dense
+            auto-grow
+          ></v-textarea>
+          <v-text-field
+            label="Логин"
+            v-model="сopySelectedItem.value.login"
+            :rules="[validationRules.login]"
+            dense
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Пароль"
+            required
+            v-model="сopySelectedItem.value.password"
+            :type="passwordVisible ? 'text' : 'password'"
+            :rules="[validationRules.password]"
+            dense
+            class="mb-4"
+          >
+            <template v-slot:append-inner>
+              <v-btn variant="text" icon @click="togglePasswordVisibility">
+                <v-icon>
+                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+                </v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+          <v-combobox
+            label="Теги"
+            v-model="сopySelectedItem.value.tags"
+            :items="uniqueTagsList"
+          ></v-combobox>
+          <v-select
+            label="Виртуальная машина"
+            v-model="сopySelectedItem.value.virtual_machine"
+            :items="virtualMachineNames"
+            item-value="id"
+            item-title="name"
+            dense
+            class="mb-4"
+          ></v-select>
+        </template>
+        <template v-slot:actions>
+          <v-btn
+            text
+            @click="handleSave(сopySelectedItem.value)"
+            :disabled="!validateForm(сopySelectedItem.value)"
+            >Сохранить</v-btn
+          >
+          <v-btn text @click="dialogClose">Закрыть</v-btn>
+        </template>
+      </Modal>
       <DialogLoader :dialogLoader="dialogLoader" />
 
-      <ModalInfo
-        v-model:dialogInfo="dialogInfo"
-        :item="selectedItem"
-        @copy-to-clipboard="copyToClipboard"
-      />
+      <Modal v-model:dialog="dialogInfo" :title="selectedItem?.name">
+        <v-card-subtitle>{{ selectedItem?.url }}</v-card-subtitle>
 
-      <ModalAdd
-        v-model:dialogAdd="dialogAdd"
-        :item="newItem"
-        :title="'Добавить новый элемент'"
-        :virtualMachines="virtualMachineNames"
-        :uniqueTagsList="uniqueTagsList"
-        :validationRules="validationRules"
-        @add-item="addSelectedItem"
-        @dialog-close="dialogClose"
-        @validate-form="validateForm"
-        v-model:disabled="disabledSave"
-      />
+        <template v-slot:body>
+          <p><strong>Описание:</strong> {{ selectedItem?.description }}</p>
+          <p>
+            <strong>Логин:</strong>
+            {{ selectedItem?.login }}
+            <v-icon
+              @click="copyToClipboard(selectedItem?.login)"
+              class="ml-2 small-icon"
+            >
+              mdi-content-copy
+            </v-icon>
+          </p>
+          <p>
+            <strong>Пароль:</strong>
+            {{ selectedItem?.password }}
+            <v-icon
+              @click="copyToClipboard(selectedItem?.password)"
+              class="ml-2 small-icon"
+            >
+              mdi-content-copy
+            </v-icon>
+          </p>
+          <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
+          <p>
+            <strong>Виртуальная машина:</strong>
+            {{ selectedItem?.virtual_machine }}
+          </p>
+        </template>
+
+        <template v-slot:actions>
+          <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
+        </template>
+      </Modal>
+
+      <Modal v-model:dialog="dialogAdd" title="Добавить новый элемент">
+        <template v-slot:body>
+          <v-text-field
+            label="Название"
+            v-model="newItem.name"
+            :rules="[validationRules.name]"
+            required
+            class="mb-4"
+            dense
+          ></v-text-field>
+          <v-text-field
+            label="URL"
+            v-model="newItem.url"
+            :rules="validationRules.url"
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-textarea
+            label="Описание"
+            v-model="newItem.description"
+            dense
+            auto-grow
+          ></v-textarea>
+          <v-text-field
+            label="Логин"
+            v-model="newItem.login"
+            :rules="[validationRules.login]"
+            dense
+            required
+            class="mb-4"
+          ></v-text-field>
+          <v-text-field
+            label="Пароль"
+            required
+            v-model="newItem.password"
+            :type="passwordVisible ? 'text' : 'password'"
+            :rules="[validationRules.password]"
+            dense
+            class="mb-4"
+          >
+            <template v-slot:append-inner>
+              <v-btn variant="text" icon @click="togglePasswordVisibility">
+                <v-icon>
+                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
+                </v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <v-combobox
+            label="Теги"
+            v-model="newItem.tags"
+            :items="uniqueTagsListModal"
+          ></v-combobox>
+          <v-select
+            label="Виртуальная машина"
+            v-model="newItem.virtual_machine"
+            :items="virtualMachineNames"
+            item-value="id"
+            item-title="name"
+            dense
+            class="mb-4"
+          ></v-select>
+        </template>
+        <template v-slot:actions>
+          <v-btn
+            text
+            @click="addSelectedItem()"
+            :disabled="!validateForm(newItem)"
+            >Добавить</v-btn
+          >
+          <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
+        </template>
+      </Modal>
 
       <ModalDelete
         v-model:dialogDelete="dialogDelete"
@@ -67,18 +232,41 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, toRefs } from "vue";
 import { useRouter } from "vue-router";
-
-import ModalEdit from "@/components/ModalEdit.vue";
 import DialogLoader from "@/components/DialogLoader.vue";
-import ModalInfo from "@/components/ModalInfo.vue";
-import ModalAdd from "@/components/ModalAdd.vue";
 import Snackbar from "@/components/Snackbar.vue";
 import { useClipboard } from "@vueuse/core";
-
+import Modal from "@/components/Modal.vue";
 import { useServicesApi } from "@/composables/useServicesApi";
 import { useItemOperations } from "@/composables/useItemOperations";
 
+const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
+
+const virtualMachineNames = computed(
+  () =>
+    virtualMachinesData.value?.data.map((vm) => ({
+      id: vm.id,
+      name: vm.name,
+    })) || []
+);
+
+const uniqueTagsList = computed(() => {
+  const tags = new Set();
+
+  services.value.forEach((service) => {
+    if (service.tags !== null) tags.add(service.tags);
+  });
+
+  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
+  return sortedTags;
+});
+
 const copyText = ref("");
+
+const passwordVisible = ref(false);
+
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value;
+};
 
 const router = useRouter();
 
@@ -102,7 +290,6 @@ const {
   snackbarMessage,
   snackbarColor,
   editItem,
-  setScrollPosition,
   addItem,
   dialogAdd,
   dialogDelete,
@@ -118,17 +305,6 @@ onMounted(async () => {
     throw e;
   }
 });
-
-const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
-
-// Вычисляемое свойство для списка виртуальных машин
-const virtualMachineNames = computed(
-  () =>
-    virtualMachinesData.value?.data.map((vm) => ({
-      id: vm.id,
-      name: vm.name,
-    })) || []
-);
 
 console.log("virtualMachineNames", virtualMachineNames);
 
@@ -164,6 +340,7 @@ const newItem = ref({
 const openDialogInfo = (item) => {
   console.log("openDialogInfo", item);
   selectedItem.value = item;
+  success.value = false;
   dialogInfo.value = true;
 };
 
@@ -173,15 +350,14 @@ const AddItemOpenDialog = (tag) => {
   newItem.value.tags = tag;
   dialogAdd.value = true;
 };
+const сopySelectedItem = ref({});
 const updateSelectedItem = (item) => {
   console.log("я здесь", item);
   selectedItem.value = item;
+  сopySelectedItem.value = ref({ ...item });
   dialogEdit.value = true;
 };
 
-const scrollPositionUpdate = (Position) => {
-  scrollPosition = Position;
-};
 const resetNewItem = () => {
   newItem.value = {
     id: "",
@@ -207,8 +383,12 @@ const copyToClipboard = (text) => {
   }
 };
 
+const handleSave = (item) => {
+  updateSelectedItem(item);
+  editSelectedItem();
+};
+
 let disabledSave = ref(false);
-// Функция валидации формы
 const validateForm = (item) => {
   console.log("item", item);
   disabledSave.value =
@@ -218,11 +398,9 @@ const validateForm = (item) => {
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
     !isNaN(item.virtual_machine);
-
-  console.log("disabledSave", disabledSave.value);
+  return disabledSave.value;
 };
 
-// Определите правила валидации
 const validationRules = {
   name: (v) => !!v || "name обязательно",
   login: (v) => !!v || "login обязательно",
@@ -235,18 +413,11 @@ const validationRules = {
   ],
 };
 
-let editItemTimeout;
-
-// const dialogLoader = ref(false);
-
-let scrollPosition = 0;
 const editSelectedItem = async () => {
-  setScrollPosition(window.scrollY);
   await editItem(selectedItem.value);
 };
 
 const addSelectedItem = async () => {
-  setScrollPosition(window.scrollY);
   await addItem(newItem.value);
 };
 
@@ -256,7 +427,6 @@ const dialogDeleteSelectedItem = (item) => {
 };
 
 const deleteSelectedItem = async () => {
-  setScrollPosition(window.scrollY);
   console.log("selectedItem.value", selectedItem.value);
   await deleteItemConfirmed(selectedItem.value);
 };
@@ -264,21 +434,6 @@ const deleteSelectedItem = async () => {
 const dialogClose = () => {
   dialogEdit.value = false;
 };
-
-const uniqueTagsList = computed(() => {
-  const tags = new Set();
-
-  services.value.forEach((service) => {
-    if (service.tags !== null) tags.add(service.tags);
-  });
-
-  const sortedTags = Array.from(tags).sort((a, b) => a.localeCompare(b));
-  return sortedTags;
-});
 </script>
 
-<style>
-.my-2 {
-  margin: 8px 0;
-}
-</style>
+<style></style>
