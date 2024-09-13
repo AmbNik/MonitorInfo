@@ -28,192 +28,40 @@
           </v-card-text>
         </template>
       </TagAccordion>
-      <Modal v-model:dialog="dialogEdit" title="Изменить элемент">
-        <template v-slot:body>
-          <v-text-field
-            label="Название"
-            v-model="сopySelectedItem.value.name"
-            :rules="[validationRules.name]"
-            required
-            class="mb-4"
-            dense
-          ></v-text-field>
-          <v-text-field
-            label="URL"
-            v-model="сopySelectedItem.value.url"
-            :rules="validationRules.url"
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-textarea
-            label="Описание"
-            v-model="сopySelectedItem.value.description"
-            dense
-            auto-grow
-          ></v-textarea>
-          <v-text-field
-            label="Логин"
-            v-model="сopySelectedItem.value.login"
-            :rules="[validationRules.login]"
-            dense
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Пароль"
-            required
-            v-model="сopySelectedItem.value.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            :rules="[validationRules.password]"
-            dense
-            class="mb-4"
-          >
-            <template v-slot:append-inner>
-              <v-btn variant="text" icon @click="togglePasswordVisibility">
-                <v-icon>
-                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
-                </v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
-          <v-combobox
-            label="Теги"
-            v-model="сopySelectedItem.value.tags"
-            :items="uniqueTagsList"
-          ></v-combobox>
-          <v-select
-            label="Виртуальная машина"
-            v-model="сopySelectedItem.value.virtual_machine"
-            :items="virtualMachineNames"
-            item-value="id"
-            item-title="name"
-            dense
-            class="mb-4"
-          ></v-select>
-        </template>
-        <template v-slot:actions>
-          <v-btn
-            text
-            @click="handleSave(сopySelectedItem.value)"
-            :disabled="!validateForm(сopySelectedItem.value)"
-            >Сохранить</v-btn
-          >
-          <v-btn text @click="dialogClose">Закрыть</v-btn>
-        </template>
-      </Modal>
+      <!-- //dialogEdit -->
+      <ModalEdit
+        v-model:dialog="dialogEdit"
+        :item="сopySelectedItem"
+        :title="'Изменить элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @save-items="handleSave"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        :disabledSave="disabledSave"
+      />
       <DialogLoader :dialogLoader="dialogLoader" />
-
-      <Modal v-model:dialog="dialogInfo" :title="selectedItem?.name">
-        <v-card-subtitle>{{ selectedItem?.url }}</v-card-subtitle>
-
-        <template v-slot:body>
-          <p><strong>Описание:</strong> {{ selectedItem?.description }}</p>
-          <p>
-            <strong>Логин:</strong>
-            {{ selectedItem?.login }}
-            <v-icon
-              @click="copyToClipboard(selectedItem?.login)"
-              class="ml-2 small-icon"
-            >
-              mdi-content-copy
-            </v-icon>
-          </p>
-          <p>
-            <strong>Пароль:</strong>
-            {{ selectedItem?.password }}
-            <v-icon
-              @click="copyToClipboard(selectedItem?.password)"
-              class="ml-2 small-icon"
-            >
-              mdi-content-copy
-            </v-icon>
-          </p>
-          <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
-          <p>
-            <strong>Виртуальная машина:</strong>
-            {{ getVirtualMachineIdByName(selectedItem?.virtual_machine) }}
-          </p>
-        </template>
-
-        <template v-slot:actions>
-          <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
-        </template>
-      </Modal>
-
-      <Modal v-model:dialog="dialogAdd" title="Добавить новый элемент">
-        <template v-slot:body>
-          <v-text-field
-            label="Название"
-            v-model="newItem.name"
-            :rules="[validationRules.name]"
-            required
-            class="mb-4"
-            dense
-          ></v-text-field>
-          <v-text-field
-            label="URL"
-            v-model="newItem.url"
-            :rules="validationRules.url"
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-textarea
-            label="Описание"
-            v-model="newItem.description"
-            dense
-            auto-grow
-          ></v-textarea>
-          <v-text-field
-            label="Логин"
-            v-model="newItem.login"
-            :rules="[validationRules.login]"
-            dense
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Пароль"
-            required
-            v-model="newItem.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            :rules="[validationRules.password]"
-            dense
-            class="mb-4"
-          >
-            <template v-slot:append-inner>
-              <v-btn variant="text" icon @click="togglePasswordVisibility">
-                <v-icon>
-                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
-                </v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
-
-          <v-combobox
-            label="Теги"
-            v-model="newItem.tags"
-            :items="uniqueTagsListModal"
-          ></v-combobox>
-          <v-select
-            label="Виртуальная машина"
-            v-model="newItem.virtual_machine"
-            :items="virtualMachineNames"
-            item-value="id"
-            item-title="name"
-            dense
-            class="mb-4"
-          ></v-select>
-        </template>
-        <template v-slot:actions>
-          <v-btn
-            text
-            @click="addSelectedItem()"
-            :disabled="!validateForm(newItem)"
-            >Добавить</v-btn
-          >
-          <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
-        </template>
-      </Modal>
+      <!-- dialogInfo -->
+      <ModalInfo
+        v-model:dialogInfo="dialogInfo"
+        :item="selectedItem"
+        :virtualMachines="virtualMachines"
+        @copy-to-clipboard="copyToClipboard"
+      />
+      <!-- dialogAdd -->
+      <ModalAdd
+        v-model:dialogAdd="dialogAdd"
+        :item="newItem"
+        :title="'Добавить новый элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @add-item="addSelectedItem"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        :disabledSave="disabledSave"
+      />
 
       <ModalDelete
         v-model:dialogDelete="dialogDelete"
@@ -374,16 +222,14 @@ const resetNewItem = () => {
 
 const { copy } = useClipboard();
 
-const copyToClipboard = (text) => {
+const copyToClipboard = async (text) => {
   if (text) {
-    console.log("copyToClipboard", text);
-    copy(text);
+    await navigator.clipboard.writeText(text);
     snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
     snackbarColor.value = "blue-darken-3";
     success.value = true;
   }
 };
-
 const handleSave = (item) => {
   updateSelectedItem(item);
   editSelectedItem();

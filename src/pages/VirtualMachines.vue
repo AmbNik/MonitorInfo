@@ -27,164 +27,44 @@
           </v-card-text>
         </template>
       </TagAccordion>
-      <Modal v-model:dialog="dialogEdit" title="Изменить элемент"
-        ><template v-slot:body>
-          <v-text-field
-            label="Название"
-            v-model="сopySelectedItem.value.name"
-            :rules="[validationRules.name]"
-            required
-            class="mb-4"
-            dense
-          ></v-text-field>
-          <v-text-field
-            label="URL"
-            v-model="сopySelectedItem.value.ip"
-            :rules="validationRules.ip"
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Логин"
-            v-model="сopySelectedItem.value.login"
-            :rules="[validationRules.login]"
-            dense
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Пароль"
-            required
-            v-model="сopySelectedItem.value.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            :rules="[validationRules.password]"
-            dense
-            class="mb-4"
-          >
-            <template v-slot:append-inner>
-              <v-btn variant="text" icon @click="togglePasswordVisibility">
-                <v-icon>
-                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
-                </v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
 
-          <v-combobox
-            label="Теги"
-            v-model="сopySelectedItem.value.tags"
-            :items="uniqueTagsListModal"
-          ></v-combobox>
-        </template>
-        <template v-slot:actions>
-          <v-btn
-            text
-            @click="handleSave(сopySelectedItem.value)"
-            :disabled="!validateForm(сopySelectedItem.value)"
-            >Сохранить</v-btn
-          >
-          <v-btn text @click="dialogEdit = false">Закрыть</v-btn>
-        </template>
-      </Modal>
+      <ModalEditVM
+        v-model:dialog="dialogEdit"
+        :item="сopySelectedItem"
+        :title="'Изменить элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @save-items="handleSave"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        :disabledSave="disabledSave"
+      />
       <DialogLoader :dialogLoader="dialogLoader" />
 
-      <Modal v-model:dialog="dialogInfo" :title="selectedItem?.name">
-        <v-card-subtitle>{{ selectedItem?.id }}</v-card-subtitle>
-        <template v-slot:body>
-          <p><strong>ip:</strong> {{ selectedItem?.ip }}</p>
-          <p>
-            <strong>Логин:</strong>
-            {{ selectedItem.login }}
-            <v-icon
-              @click="copyToClipboard(selectedItem?.login)"
-              class="ml-2 small-icon"
-            >
-              mdi-content-copy
-            </v-icon>
-          </p>
-          <p>
-            <strong>Пароль:</strong>
-            {{ selectedItem?.password }}
-            <v-icon
-              @click="copyToClipboard(selectedItem?.password)"
-              class="ml-2 small-icon"
-            >
-              mdi-content-copy
-            </v-icon>
-          </p>
-          <p><strong>Теги:</strong> {{ selectedItem?.tags }}</p>
-        </template>
-
-        <template v-slot:actions>
-          <v-btn text @click="dialogInfo = false">Закрыть</v-btn>
-        </template>
-      </Modal>
-
-      <Modal v-model:dialog="dialogAdd" title="Добавить новый элемент">
-        <template v-slot:body>
-          <v-text-field
-            label="Название"
-            v-model="newItem.name"
-            :rules="[validationRules.name]"
-            required
-            class="mb-4"
-            dense
-          ></v-text-field>
-          <v-text-field
-            label="ip"
-            v-model="newItem.ip"
-            :rules="validationRules.ip"
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Логин"
-            v-model="newItem.login"
-            :rules="[validationRules.login]"
-            dense
-            required
-            class="mb-4"
-          ></v-text-field>
-          <v-text-field
-            label="Пароль"
-            required
-            v-model="newItem.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            :rules="[validationRules.password]"
-            dense
-            class="mb-4"
-          >
-            <template v-slot:append-inner>
-              <v-btn variant="text" icon @click="togglePasswordVisibility">
-                <v-icon>
-                  {{ passwordVisible ? "mdi-eye-off" : "mdi-eye" }}
-                </v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
-
-          <v-combobox
-            label="Теги"
-            v-model="newItem.tags"
-            :items="uniqueTagsListModal"
-          ></v-combobox>
-        </template>
-
-        <template v-slot:actions>
-          <v-btn
-            text
-            @click="addSelectedItem()"
-            :disabled="!validateForm(newItem)"
-            >Добавить</v-btn
-          >
-          <v-btn text @click="dialogAdd = false">Закрыть</v-btn>
-        </template>
-      </Modal>
+      <ModalInfoVM
+        v-model:dialogInfo="dialogInfo"
+        :item="selectedItem"
+        @copy-to-clipboard="copyToClipboard"
+      />
 
       <ModalDelete
         v-model:dialogDelete="dialogDelete"
         :itemName="selectedItem.name"
         @delete-item="deleteSelectedItem"
+      />
+
+      <ModalAddVM
+        v-model:dialogAdd="dialogAdd"
+        :item="newItem"
+        :title="'Добавить новый элемент'"
+        :virtualMachines="virtualMachineNames"
+        :uniqueTagsList="uniqueTagsList"
+        :validationRules="validationRules"
+        @add-item="addSelectedItem"
+        @dialog-close="dialogClose"
+        @validate-form="validateForm"
+        :disabledSave="disabledSave"
       />
 
       <Snackbar
@@ -296,10 +176,10 @@ const resetNewItem = () => {
 
 const { copy } = useClipboard();
 
-const copyToClipboard = (text) => {
+const copyToClipboard = async (text) => {
   if (text) {
     console.log("copyToClipboard", text);
-    copy(text);
+    await navigator.clipboard.writeText(text);
     snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
     snackbarColor.value = "blue-darken-3";
     success.value = true;
@@ -309,31 +189,27 @@ const handleSave = (item) => {
   updateSelectedItem(item);
   editSelectedItem();
 };
+const ipv4Regex =
+  /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
+const ipv6Regex =
+  /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
+
 // Функция для проверки IPv4
 const isValidIPv4 = (ip) => {
-  const ipv4Regex =
-    /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
   return ipv4Regex.test(ip);
 };
 
 const isValidIPv6 = (ip) => {
-  const ipv6Regex =
-    /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
   return ipv6Regex.test(ip);
 };
 
 let disabledSave = ref(false);
 // Функция валидации формы
 const validateForm = (item) => {
-  const ipRegex =
-    /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
-  const ipRegexV6 =
-    /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
-
   disabledSave.value =
     item.name.trim() !== "" &&
     item.ip.trim() !== "" &&
-    (ipRegex.test(item.ip) || ipRegexV6.test(item.ip)) &&
+    (ipv4Regex.test(item.ip) || ipv6Regex.test(item.ip)) &&
     item.login.trim() !== "" &&
     item.password.trim() !== "";
   return disabledSave.value;

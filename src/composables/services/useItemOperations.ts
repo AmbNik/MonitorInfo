@@ -1,6 +1,7 @@
 // src/composables/useItemOperations.js
 import { ref, computed } from "vue";
 import { useServicesApi } from "./useServicesApi";
+import type { Service } from "@/types/interfaces/services";
 
 export function useItemOperations() {
   const { data, addServices, updateServiceUse, deleteServiceUse, getServices } =
@@ -27,19 +28,19 @@ export function useItemOperations() {
     console.error(message);
   };
 
-  const services = computed(() => data.value?.data || []);
+  const services = computed(() => data.value || []);
 
-  const dialogLoader = ref(false);
-  const success = ref(false);
-  const snackbarMessage = ref("");
-  const snackbarColor = ref("");
+  const dialogLoader = ref<boolean>(false);
+  const success = ref<boolean>(false);
+  const snackbarMessage = ref<string>("");
+  const snackbarColor = ref<string>("");
 
-  const dialogEdit = ref(false);
-  const dialogInfo = ref(false);
-  const dialogAdd = ref(false);
-  const dialogDelete = ref(false);
+  const dialogEdit = ref<boolean>(false);
+  const dialogInfo = ref<boolean>(false);
+  const dialogAdd = ref<boolean>(false);
+  const dialogDelete = ref<boolean>(false);
 
-  const addItem = async (newItem: any) => {
+  const addItem = async (newItem: Service) => {
     dialogLoader.value = true;
     success.value = false;
     try {
@@ -56,14 +57,14 @@ export function useItemOperations() {
     }
   };
 
-  const editItem = async (selectedItem: any) => {
+  const editItem = async (selectedItem: Service) => {
     dialogLoader.value = true;
     success.value = false;
 
     try {
-      await updateServiceUse(selectedItem.id, selectedItem);
+      await updateServiceUse(Number(selectedItem.id), selectedItem);
       const index = services.value.findIndex(
-        (service: any) => service.id === selectedItem.id
+        (service: Service) => service.id === selectedItem.id
       );
       if (index !== -1) {
         services.value[index] = selectedItem;
@@ -78,14 +79,14 @@ export function useItemOperations() {
     }
   };
 
-  const deleteItemConfirmed = async (selectedItem: any) => {
+  const deleteItemConfirmed = async (selectedItem: Service) => {
     dialogLoader.value = true;
     success.value = false;
     try {
       dialogDelete.value = false;
-      await deleteServiceUse(selectedItem.id);
+      await deleteServiceUse(Number(selectedItem.id));
       const index = services.value.findIndex(
-        (service: any) => service.id === selectedItem.id
+        (service: Service) => service.id === selectedItem.id
       );
       if (index !== -1) {
         services.value.splice(index, 1);

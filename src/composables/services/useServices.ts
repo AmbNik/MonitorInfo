@@ -1,32 +1,34 @@
 import { ref } from "vue";
 import servicesApi from "@/api/services";
+import type { Service } from "@/types/interfaces/services";
+import { AxiosError } from "axios";
 
 export function useServices() {
   const isLoading = ref<boolean>(false);
-  const data = ref<any | null>(null);
-  const error = ref<null>(null);
+  const data = ref<Service[] | null>(null);
+  const error = ref<AxiosError | null>(null);
 
   const getServicesStart = () => {
     isLoading.value = true;
     data.value = null;
   };
 
-  const getServicesSuccess = (items: any) => {
+  const getServicesSuccess = (items: Service[]) => {
     isLoading.value = false;
     data.value = items;
   };
 
-  const getServicesFailure = (errors: any) => {
+  const getServicesFailure = (errors: AxiosError) => {
     isLoading.value = false;
     error.value = errors;
   };
 
-  const getServices = async (): Promise<any> => {
+  const getServices = async (): Promise<Service[]> => {
     console.log("sdsd");
     try {
       getServicesStart();
-      const services = await servicesApi.getServices();
-      console.error("services", services.data);
+      const response = await servicesApi.getServices();
+      const services = response.data; // Извлекаем данные из ответа
       getServicesSuccess(services);
       return services;
     } catch (errors: any) {
@@ -44,12 +46,12 @@ export function useServices() {
     isLoading.value = false;
   };
 
-  const ServicesFailure = (errors: any) => {
+  const ServicesFailure = (errors: AxiosError) => {
     isLoading.value = false;
     error.value = errors;
   };
 
-  const addServices = async (serviceData: any): Promise<any> => {
+  const addServices = async (serviceData: Service): Promise<Service> => {
     try {
       ServicesStart();
       const response = await servicesApi.addService(serviceData);
@@ -62,7 +64,10 @@ export function useServices() {
     }
   };
 
-  const updateService = async (id: any, selectedItem: any): Promise<any> => {
+  const updateService = async (
+    id: number,
+    selectedItem: Service
+  ): Promise<void> => {
     try {
       ServicesStart();
       await servicesApi.updateService(id, selectedItem);
@@ -73,7 +78,7 @@ export function useServices() {
     }
   };
 
-  const deleteService = async (id: any): Promise<any> => {
+  const deleteService = async (id: number): Promise<void> => {
     try {
       ServicesStart();
       await servicesApi.deleteService(id);
