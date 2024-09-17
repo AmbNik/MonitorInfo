@@ -1,5 +1,8 @@
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:8000//api";
-// axios.defaults.baseURL = "http://192.168.200.70:8000/api";
+// Используйте import.meta.env для доступа к переменным окружения
+const baseURL = import.meta.env.VITE_APP_URL_API;
+
+axios.defaults.baseURL = baseURL;
+
 export default axios;

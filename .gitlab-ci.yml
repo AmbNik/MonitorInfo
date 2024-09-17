@@ -1,29 +1,41 @@
-image: docker:latest
-
-services:
-  - docker:dind
-
 stages:
   - build
+  - sonarqube
   - deploy
-  
- 
-variables:
-  IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-
+  - cleanup
 before_script:
-  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  - docker login registry-gitlab.abak2000.ru -u gitlab+deploy-token-14 -p qeQqEwqyt6znPS7Mgrh4
 
 build:
   stage: build
+  tags:
+    - frontend
+  only:
+    - main
+    - production/*
   script:
-    - docker build -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
-
+    - cp $ENV_FILE .env
+    # собственно сборка
+    - docker compose build
 deploy:
   stage: deploy
+  tags:
+    - frontend
+  # выкатываем только ветку master
+  only:
+    - main
+  # для этой ступени другие команды инициализации
   script:
-    - docker pull $IMAGE_NAME
-    - docker stop vuetify_project || true
-    - docker rm vuetify_project || true
-    - docker run -d --name vuetify_project -p 80:3000 $IMAGE_NAME
+    - cp $ENV_FILE .env
+    - docker compose up -d
+  artifacts:
+    paths:
+      - .env
+cleanup:
+  stage: cleanup
+  tags:
+    - frontend
+  only:
+    - main
+  script:
+    - docker builder prune --force

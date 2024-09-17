@@ -1,12 +1,13 @@
 <template>
   <v-main style="margin-top: 100px">
     <v-container>
-      <h1>Виртуальные машины</h1>
+      <h1>Приложения</h1>
+
       <TagAccordion
-        :items="virtualMachines"
+        :items="applications"
         :isLoading="isLoading"
         :error="error"
-        @update-selected-item="updateSelectedItem"
+        @update-selected-item="openDialogEdit"
         @update-new-item="resetNewItem"
         v-model:dialogEdit="dialogEdit"
         v-model:dialogInfo="dialogInfo"
@@ -21,40 +22,42 @@
         </template>
 
         <template v-slot:description="{ item }">
-          <v-card-subtitle>{{ item.ip }}</v-card-subtitle>
+          <v-card-subtitle>{{ item.url }}</v-card-subtitle>
           <v-card-text class="text-truncate" style="max-width: 350px">
             {{ item.description }}
           </v-card-text>
         </template>
       </TagAccordion>
-
-      <ModalEditVM
-        v-model:dialog="dialogEdit"
-        :item="сopySelectedItem"
-        :title="'Изменить элемент'"
-        :virtualMachines="virtualMachineNames"
-        :uniqueTagsList="uniqueTagsList"
-        :validationRules="validationRules"
-        @save-items="handleSave"
-        @dialog-close="dialogClose"
-        @validate-form="validateForm"
-        :disabledSave="disabledSave"
-      />
+      <FormHelper
+        ref="formHelperRef"
+        @confirm="handleSave"
+        #default="{ close, handleConfirm, formState }"
+      >
+        <EditModal
+          v-model:name="formState.name"
+          v-model:url="formState.url"
+          v-model:description="formState.description"
+          v-model:login="formState.login"
+          v-model:password="formState.password"
+          v-model:tags="formState.tags"
+          v-model:virtual_machine="formState.virtual_machine"
+          :virtualMachines="virtualMachineNames"
+          :validationRules="validationRules"
+          :title="'Изменить элемент'"
+          @close="close"
+          @confirm="handleConfirm"
+        />
+      </FormHelper>
       <DialogLoader :dialogLoader="dialogLoader" />
-
-      <ModalInfoVM
+      <!-- dialogInfo -->
+      <ModalInfo
         v-model:dialogInfo="dialogInfo"
         :item="selectedItem"
+        :virtualMachines="virtualMachines"
         @copy-to-clipboard="copyToClipboard"
       />
-
-      <ModalDelete
-        v-model:dialogDelete="dialogDelete"
-        :itemName="selectedItem.name"
-        @delete-item="deleteSelectedItem"
-      />
-
-      <ModalAddVM
+      <!-- dialogAdd -->
+      <ModalAdd
         v-model:dialogAdd="dialogAdd"
         :item="newItem"
         :title="'Добавить новый элемент'"
@@ -67,31 +70,49 @@
         :disabledSave="disabledSave"
       />
 
-      <Snackbar
-        v-model:success="success"
-        :color="snackbarColor"
-        :message="snackbarMessage"
+      <ModalDelete
+        v-model:dialogDelete="dialogDelete"
+        :itemName="selectedItem.name"
+        @delete-item="deleteSelectedItem"
       />
     </v-container>
   </v-main>
 </template>
 <script setup>
-import { ref, computed, onMounted, nextTick, toRefs } from "vue";
+import { ref, computed, onMounted, nextTick, toRefs, inject } from "vue";
 import { useRouter } from "vue-router";
-
 import DialogLoader from "@/components/modals/DialogLoader.vue";
 import Snackbar from "@/components/UI/Snackbar.vue";
 import Modal from "@/components/modals/Modal.vue";
 import { useClipboard } from "@vueuse/core";
+import { useApplicationsApi } from "@/composables/applications/useApplicationsApi";
+import { useItemOperationsApplications } from "@/composables/applications/useItemOperationsApplications";
+///1111
+import FormHelper from "@/components/helpers/FormHelper.vue";
 
-// import { useServicesApi } from "@/composables/useServicesApi";
-import { useItemOperationsVirtualMachine } from "@/composables/virtualMachines/useItemOperationsVirtualMachine";
+const showSnackbar = inject("showSnackbar");
+///1111
+const formHelperRef = ref(null);
 
-const virtualMachines = computed(() => virtualMachinesData.value || []);
+const openDialogEdit = (item) => {
+  formHelperRef.value.open(item);
+};
+const virtualMachines = computed({
+  get: () => virtualMachinesData.value?.data || [],
+});
+
+const virtualMachineNames = computed(
+  () =>
+    virtualMachinesData.value?.data.map((vm) => ({
+      id: vm.id,
+      name: vm.name,
+    })) || []
+);
+
 const uniqueTagsList = computed(() => {
   const tags = new Set();
 
-  virtualMachines.value.forEach((service) => {
+  applications.value.forEach((service) => {
     if (service.tags !== null) tags.add(service.tags);
   });
 
@@ -100,17 +121,29 @@ const uniqueTagsList = computed(() => {
 });
 
 const copyText = ref("");
+
 const passwordVisible = ref(false);
 
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
+
 const router = useRouter();
 
 const {
-  error,
+  data,
   isLoading,
-  virtualMachines: virtualMachinesData,
+  error,
+  getApplications,
+  addApplications,
+  updateApplicationsUse,
+  deleteApplicationsUse,
+  virtualMachinesData,
+  getVirtualMachines,
+} = useApplicationsApi();
+
+const {
+  applications,
   dialogLoader,
   dialogEdit,
   success,
@@ -122,29 +155,53 @@ const {
   dialogDelete,
   dialogInfo,
   deleteItemConfirmed,
-} = useItemOperationsVirtualMachine();
+} = useItemOperationsApplications();
+
+onMounted(async () => {
+  try {
+    await Promise.all([getApplications(), getVirtualMachines()]);
+  } catch (e) {
+    console.error("Ошибка при загрузке данных:", e);
+    throw e;
+  }
+});
+
+console.log("virtualMachineNames", virtualMachineNames);
+
+const getVirtualMachineIdByName = (id) => {
+  console.log("id", id);
+  const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
+  return vm ? vm.name : "не указано";
+};
 
 const selectedItem = ref({
   id: "",
   name: "",
-  ip: "",
+  url: "",
+  description: "",
   login: "",
   password: "",
   tags: "",
+  virtual_machine: "",
 });
+
+console.log("selectedItem", selectedItem);
 
 const newItem = ref({
   id: "",
   name: "",
-  ip: "",
+  url: "",
+  description: "",
   login: "",
   password: "",
   tags: "",
+  virtual_machine: "",
 });
 
 const openDialogInfo = (item) => {
   console.log("openDialogInfo", item);
   selectedItem.value = item;
+  success.value = false;
   dialogInfo.value = true;
 };
 
@@ -154,23 +211,23 @@ const AddItemOpenDialog = (tag) => {
   newItem.value.tags = tag;
   dialogAdd.value = true;
 };
-
 const сopySelectedItem = ref({});
 const updateSelectedItem = (item) => {
-  console.log("я здесь", item);
   selectedItem.value = item;
   сopySelectedItem.value = ref({ ...item });
-  dialogEdit.value = true;
+  // dialogEdit.value = true;
 };
 
 const resetNewItem = () => {
   newItem.value = {
     id: "",
     name: "",
-    ip: "",
+    url: "",
+    description: "",
     login: "",
     password: "",
     tags: "",
+    virtual_machine: "",
   };
 };
 
@@ -178,55 +235,41 @@ const { copy } = useClipboard();
 
 const copyToClipboard = async (text) => {
   if (text) {
-    console.log("copyToClipboard", text);
     await navigator.clipboard.writeText(text);
     snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
     snackbarColor.value = "blue-darken-3";
-    success.value = true;
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
   }
 };
 const handleSave = (item) => {
   updateSelectedItem(item);
   editSelectedItem();
-};
-const ipv4Regex =
-  /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
-const ipv6Regex =
-  /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
-
-// Функция для проверки IPv4
-const isValidIPv4 = (ip) => {
-  return ipv4Regex.test(ip);
-};
-
-const isValidIPv6 = (ip) => {
-  return ipv6Regex.test(ip);
+  //1111
+  formHelperRef.value.close();
 };
 
 let disabledSave = ref(false);
-// Функция валидации формы
 const validateForm = (item) => {
+  console.log("item", item);
   disabledSave.value =
     item.name.trim() !== "" &&
-    item.ip.trim() !== "" &&
-    (ipv4Regex.test(item.ip) || ipv6Regex.test(item.ip)) &&
+    item.url.trim() !== "" &&
+    /^https?:\/\/\S+\.\S+/g.test(item.url) &&
     item.login.trim() !== "" &&
-    item.password.trim() !== "";
-  return disabledSave.value;
+    item.password.trim() !== "" &&
+    !isNaN(item.virtual_machine);
 };
 
-// Определите правила валидации
 const validationRules = {
   name: (v) => !!v || "name обязательно",
-  ip: [
-    (v) => !!v || "IP-адрес обязателен",
-    (v) =>
-      isValidIPv4(v) ||
-      isValidIPv6(v) ||
-      "Некорректный IP-адрес. Например, 192.168.200.57 или 2001:db8::ff00:42:8329",
-  ],
   login: (v) => !!v || "login обязательно",
   password: (v) => !!v || "password обязательно",
+  url: [
+    (v) => !!v || "URL обязателен",
+    (v) =>
+      /^https?:\/\/\S+\.\S+/g.test(v) ||
+      "Некорректный формат URL. Например, https://example.com",
+  ],
 };
 
 const editSelectedItem = async () => {

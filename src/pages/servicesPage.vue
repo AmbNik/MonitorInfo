@@ -1,13 +1,12 @@
 <template>
   <v-main style="margin-top: 100px">
     <v-container>
-      <h1>Приложения</h1>
-
+      <h1>Сервисы</h1>
       <TagAccordion
-        :items="applications"
+        :items="services"
         :isLoading="isLoading"
         :error="error"
-        @update-selected-item="updateSelectedItem"
+        @update-selected-item="openDialogEdit"
         @update-new-item="resetNewItem"
         v-model:dialogEdit="dialogEdit"
         v-model:dialogInfo="dialogInfo"
@@ -28,19 +27,28 @@
           </v-card-text>
         </template>
       </TagAccordion>
-      <!-- //dialogEdit -->
-      <ModalEdit
-        v-model:dialog="dialogEdit"
-        :item="сopySelectedItem"
-        :title="'Изменить элемент'"
-        :virtualMachines="virtualMachineNames"
-        :uniqueTagsList="uniqueTagsList"
-        :validationRules="validationRules"
-        @save-items="handleSave"
-        @dialog-close="dialogClose"
-        @validate-form="validateForm"
-        :disabledSave="disabledSave"
-      />
+
+      <FormHelper
+        ref="formHelperRef"
+        @confirm="handleSave"
+        #default="{ close, handleConfirm, formState }"
+      >
+        <EditModal
+          v-model:name="formState.name"
+          v-model:url="formState.url"
+          v-model:description="formState.description"
+          v-model:login="formState.login"
+          v-model:password="formState.password"
+          v-model:tags="formState.tags"
+          v-model:virtual_machine="formState.virtual_machine"
+          :virtualMachines="virtualMachineNames"
+          :validationRules="validationRules"
+          :title="'Изменить элемент'"
+          @close="close"
+          @confirm="handleConfirm"
+        />
+      </FormHelper>
+
       <DialogLoader :dialogLoader="dialogLoader" />
       <!-- dialogInfo -->
       <ModalInfo
@@ -68,26 +76,28 @@
         :itemName="selectedItem.name"
         @delete-item="deleteSelectedItem"
       />
-
-      <Snackbar
-        v-model:success="success"
-        :color="snackbarColor"
-        :message="snackbarMessage"
-      />
     </v-container>
   </v-main>
 </template>
 <script setup>
-import { ref, computed, onMounted, nextTick, toRefs } from "vue";
+import { ref, computed, onMounted, inject } from "vue";
 import { useRouter } from "vue-router";
 import DialogLoader from "@/components/modals/DialogLoader.vue";
 import Snackbar from "@/components/UI/Snackbar.vue";
-import Modal from "@/components/modals/Modal.vue";
 import { useClipboard } from "@vueuse/core";
-import { useApplicationsApi } from "@/composables/applications/useApplicationsApi";
-import { useItemOperationsApplications } from "@/composables/applications/useItemOperationsApplications";
+import { useServicesApi } from "@/composables/services/useServicesApi";
+import { useItemOperations } from "@/composables/services/useItemOperations";
+///1111
+import FormHelper from "@/components/helpers/FormHelper.vue";
 
-const virtualMachines = computed(() => virtualMachinesData.value?.data || []);
+const showSnackbar = inject("showSnackbar");
+
+///1111
+const formHelperRef = ref(null);
+
+const virtualMachines = computed({
+  get: () => virtualMachinesData.value?.data || [],
+});
 
 const virtualMachineNames = computed(
   () =>
@@ -100,7 +110,7 @@ const virtualMachineNames = computed(
 const uniqueTagsList = computed(() => {
   const tags = new Set();
 
-  applications.value.forEach((service) => {
+  services.value.forEach((service) => {
     if (service.tags !== null) tags.add(service.tags);
   });
 
@@ -110,28 +120,22 @@ const uniqueTagsList = computed(() => {
 
 const copyText = ref("");
 
-const passwordVisible = ref(false);
-
-const togglePasswordVisibility = () => {
-  passwordVisible.value = !passwordVisible.value;
-};
-
 const router = useRouter();
 
 const {
   data,
   isLoading,
   error,
-  getApplications,
-  addApplications,
-  updateApplicationsUse,
-  deleteApplicationsUse,
+  getServices,
+  addServices,
+  updateServiceUse,
+  deleteServiceUse,
   virtualMachinesData,
   getVirtualMachines,
-} = useApplicationsApi();
+} = useServicesApi();
 
 const {
-  applications,
+  services,
   dialogLoader,
   dialogEdit,
   success,
@@ -143,24 +147,16 @@ const {
   dialogDelete,
   dialogInfo,
   deleteItemConfirmed,
-} = useItemOperationsApplications();
+} = useItemOperations();
 
 onMounted(async () => {
   try {
-    await Promise.all([getApplications(), getVirtualMachines()]);
+    await Promise.all([getServices(), getVirtualMachines()]);
   } catch (e) {
     console.error("Ошибка при загрузке данных:", e);
     throw e;
   }
 });
-
-console.log("virtualMachineNames", virtualMachineNames);
-
-const getVirtualMachineIdByName = (id) => {
-  console.log("id", id);
-  const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
-  return vm ? vm.name : "не указано";
-};
 
 const selectedItem = ref({
   id: "",
@@ -201,10 +197,16 @@ const AddItemOpenDialog = (tag) => {
 };
 const сopySelectedItem = ref({});
 const updateSelectedItem = (item) => {
-  console.log("я здесь", item);
   selectedItem.value = item;
   сopySelectedItem.value = ref({ ...item });
-  dialogEdit.value = true;
+
+  // 11111
+  // dialogEdit.value = true;
+};
+
+// 11111
+const openDialogEdit = (item) => {
+  formHelperRef.value.open(item);
 };
 
 const resetNewItem = () => {
@@ -224,17 +226,22 @@ const { copy } = useClipboard();
 
 const copyToClipboard = async (text) => {
   if (text) {
+    console.log("copyToClipboard", text);
     await navigator.clipboard.writeText(text);
+    //11111
     snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
     snackbarColor.value = "blue-darken-3";
-    success.value = true;
+    //11111
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
   }
 };
+
 const handleSave = (item) => {
   updateSelectedItem(item);
   editSelectedItem();
+  //1111
+  formHelperRef.value.close();
 };
-
 let disabledSave = ref(false);
 const validateForm = (item) => {
   console.log("item", item);
@@ -245,7 +252,6 @@ const validateForm = (item) => {
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
     !isNaN(item.virtual_machine);
-  return disabledSave.value;
 };
 
 const validationRules = {

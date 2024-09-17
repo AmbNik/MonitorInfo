@@ -1,5 +1,5 @@
 // src/composables/useItemOperations.js
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 // import { useServicesApi } from "./useServicesApi";
 import { useVirtualMachines } from "@/composables/virtualMachines/useVirtualMachines";
 
@@ -14,6 +14,15 @@ export function useItemOperationsVirtualMachine() {
     addVirtualMachines,
   } = useVirtualMachines();
 
+  type ShowSnackbar = (message: string, color: SnackbarColor) => void;
+  type SnackbarColor =
+    | "blue-darken-3"
+    | "green-darken-1"
+    | "red-darken-1"
+    | "yellow-darken-1";
+
+  const showSnackbar = inject("showSnackbar") as ShowSnackbar;
+
   onMounted(async () => {
     try {
       await getVirtualMachines();
@@ -25,14 +34,14 @@ export function useItemOperationsVirtualMachine() {
   const handleSuccess = (message: string) => {
     snackbarMessage.value = message;
     snackbarColor.value = "green-darken-1";
-    success.value = true;
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
     setTimeout(() => (success.value = false), 5000);
   };
 
   const handleError = (message: string) => {
     snackbarMessage.value = message;
     snackbarColor.value = "red-darken-1";
-    console.error(message);
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
   };
 
   const virtualMachines = computed(() => data.value?.data || []);
@@ -40,7 +49,7 @@ export function useItemOperationsVirtualMachine() {
   const dialogLoader = ref(false);
   const success = ref(false);
   const snackbarMessage = ref("");
-  const snackbarColor = ref("");
+  const snackbarColor = ref<SnackbarColor>();
 
   const dialogEdit = ref(false);
   const dialogInfo = ref(false);

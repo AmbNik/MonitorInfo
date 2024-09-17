@@ -55,12 +55,12 @@ export default {
     const router = useRouter();
 
     const menuItems = [
-      { title: "Приложения", icon: "mdi-apps", route: "/applications" },
-      { title: "Сервисы", icon: "mdi-server", route: "/services" },
+      { title: "Приложения", icon: "mdi-apps", route: "/applicationspage" },
+      { title: "Сервисы", icon: "mdi-server", route: "/servicespage" },
       {
         title: "Виртуальные машины",
         icon: "mdi-virtual-reality",
-        route: "/virtualmachines",
+        route: "/virtualmachinespage",
       },
     ];
 

@@ -1,16 +1,14 @@
 import axios from "@/api/axios";
 
-// Метод для получения списка сервисов
+import type { Service } from "@/types/interfaces/services";
+
 const getServices = () => {
   return axios.get(`/services/`);
 };
 
-// Метод для добавления нового сервиса
-// Метод для добавления нового сервиса
-const addService = async (serviceData: any) => {
+const addService = async (serviceData: Service) => {
   try {
     const response = await axios.post(`/services/`, serviceData);
-    // Предполагаем, что ID нового сервиса возвращается в response.data.id
     return response;
   } catch (error) {
     console.error("Ошибка при добавлении сервиса:", error);
@@ -19,12 +17,13 @@ const addService = async (serviceData: any) => {
 };
 
 // Метод для обновления существующего сервиса
-const updateService = (id: any, serviceData: any) => {
+const updateService = (id: number, serviceData: Service) => {
+  console.log("serviceData", serviceData);
   return axios.put(`/services/${id}/`, serviceData);
 };
 
 // Метод для удаления сервиса
-const deleteService = (id: any) => {
+const deleteService = (id: number) => {
   return axios.delete(`/services/${id}/`);
 };
 

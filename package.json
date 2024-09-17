@@ -6,7 +6,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix --ignore-path .gitignore",
-    "start": "vite preview"
+    "start": "vite preview --host"
   },
   "dependencies": {
     "@mdi/font": "7.4.47",

@@ -1,11 +1,20 @@
 // src/composables/useItemOperations.js
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 import { useServicesApi } from "./useServicesApi";
 import type { Service } from "@/types/interfaces/services";
 
 export function useItemOperations() {
   const { data, addServices, updateServiceUse, deleteServiceUse, getServices } =
     useServicesApi();
+
+  type ShowSnackbar = (message: string, color: SnackbarColor) => void;
+  type SnackbarColor =
+    | "blue-darken-3"
+    | "green-darken-1"
+    | "red-darken-1"
+    | "yellow-darken-1";
+
+  const showSnackbar = inject("showSnackbar") as ShowSnackbar;
 
   onMounted(async () => {
     try {
@@ -18,6 +27,7 @@ export function useItemOperations() {
   const handleSuccess = (message: string) => {
     snackbarMessage.value = message;
     snackbarColor.value = "green-darken-1";
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
     success.value = true;
     setTimeout(() => (success.value = false), 5000);
   };
@@ -25,6 +35,7 @@ export function useItemOperations() {
   const handleError = (message: string) => {
     snackbarMessage.value = message;
     snackbarColor.value = "red-darken-1";
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
     console.error(message);
   };
 
@@ -33,7 +44,7 @@ export function useItemOperations() {
   const dialogLoader = ref<boolean>(false);
   const success = ref<boolean>(false);
   const snackbarMessage = ref<string>("");
-  const snackbarColor = ref<string>("");
+  const snackbarColor = ref<SnackbarColor>();
 
   const dialogEdit = ref<boolean>(false);
   const dialogInfo = ref<boolean>(false);
