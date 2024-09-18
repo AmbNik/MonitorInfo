@@ -45,9 +45,9 @@ const props = defineProps({
   virtualMachines: Object,
 });
 
-const getVirtualMachineIdByName = (id) => {
+function getVirtualMachineIdByName(id) {
   console.log("id", id);
   const vm = props.virtualMachines.find((vm) => vm.id === id);
   return vm ? vm.name : "не указано";
-};
+}
 </script>

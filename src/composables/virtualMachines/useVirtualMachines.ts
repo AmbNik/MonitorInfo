@@ -6,21 +6,21 @@ export function useVirtualMachines() {
   const data = ref<any | null>(null);
   const error = ref<null>(null);
 
-  const getVirtualMachinesStart = () => {
+  function getVirtualMachinesStart() {
     isLoading.value = true;
     data.value = null;
-  };
+  }
 
-  const getVirtualMachinesSuccess = (items: any) => {
+  function getVirtualMachinesSuccess(items: any) {
     isLoading.value = false;
     data.value = items;
-  };
-  const getVirtualMachinesFailure = (errors: any) => {
+  }
+  function getVirtualMachinesFailure(errors: any) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const getVirtualMachines = async (): Promise<any> => {
+  async function getVirtualMachines(): Promise<any> {
     try {
       getVirtualMachinesStart();
       const services = await virtualMachinesApi.getVirtualMachines();
@@ -30,21 +30,21 @@ export function useVirtualMachines() {
       getVirtualMachinesFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const VirtualMachinesStart = () => {
+  function VirtualMachinesStart() {
     isLoading.value = true;
-  };
+  }
 
-  const VirtualMachinesSuccess = () => {
+  function VirtualMachinesSuccess() {
     isLoading.value = false;
-  };
-  const VirtualMachinesFailure = (errors: any) => {
+  }
+  function VirtualMachinesFailure(errors: any) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const addVirtualMachines = async (VirtualMachinesData: any): Promise<any> => {
+  async function addVirtualMachines(VirtualMachinesData: any): Promise<any> {
     try {
       VirtualMachinesStart();
       const response = await virtualMachinesApi.addVirtualMachines(
@@ -56,12 +56,12 @@ export function useVirtualMachines() {
       VirtualMachinesFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const updateVirtualMachines = async (
+  async function updateVirtualMachines(
     id: any,
     VirtualMachinesData: any
-  ): Promise<any> => {
+  ): Promise<any> {
     try {
       VirtualMachinesStart();
       await virtualMachinesApi.updateVirtualMachines(id, VirtualMachinesData);
@@ -70,9 +70,9 @@ export function useVirtualMachines() {
       VirtualMachinesFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const deleteVirtualMachines = async (id: any): Promise<any> => {
+  async function deleteVirtualMachines(id: any): Promise<any> {
     try {
       VirtualMachinesStart();
       await virtualMachinesApi.deleteVirtualMachines(id);
@@ -81,7 +81,7 @@ export function useVirtualMachines() {
       VirtualMachinesFailure(errors);
       throw errors;
     }
-  };
+  }
 
   return {
     data,

@@ -76,14 +76,14 @@ const props = defineProps({
 
 const passwordVisible = ref(false);
 
-const togglePasswordVisibility = () => {
+function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
-};
+}
 
-const validateForm = (item) => {
+function validateForm(item) {
   emit("validate-form", item);
   return props.disabledSave;
-};
+}
 
 const emit = defineEmits(["validate-form"]);
 </script>

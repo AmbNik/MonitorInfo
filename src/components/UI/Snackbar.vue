@@ -21,12 +21,12 @@ import { SnackbarColor } from "@/types/enum/snackbarColor";
 const color = ref<SnackbarColor>(SnackbarColor.SuccessColor);
 const message = ref("");
 const success = ref(false);
-const showSnackbar = (mess: string, col: SnackbarColor) => {
+function showSnackbar(mess: string, col: SnackbarColor) {
   success.value = false;
   color.value = col;
   message.value = mess;
   setTimeout(() => (success.value = true), 50);
-};
+}
 
 defineExpose({ showSnackbar });
 </script>

@@ -20,21 +20,21 @@ export function useItemOperations() {
     }
   });
 
-  const handleSnackbar = (message: string, color: SnackbarColor) => {
+  function handleSnackbar(message: string, color: SnackbarColor) {
     snackbarMessage.value = message;
     snackbarColor.value = color;
     success.value = true;
     showSnackbar(snackbarMessage.value, snackbarColor.value);
-  };
+  }
 
-  const handleSuccess = (message: string) => {
+  function handleSuccess(message: string) {
     handleSnackbar(message, SnackbarColor.SuccessColor);
-  };
+  }
 
-  const handleError = (message: string) => {
+  function handleError(message: string) {
     handleSnackbar(message, SnackbarColor.ErrorColor);
     console.error(message);
-  };
+  }
   const services = computed(() => data.value || []);
 
   const dialogLoader = ref<boolean>(false);
@@ -47,7 +47,7 @@ export function useItemOperations() {
   const dialogAdd = ref<boolean>(false);
   const dialogDelete = ref<boolean>(false);
 
-  const addItem = async (newItem: Service) => {
+  async function addItem(newItem: Service) {
     dialogLoader.value = true;
     success.value = false;
     try {
@@ -62,9 +62,9 @@ export function useItemOperations() {
     } finally {
       dialogLoader.value = false;
     }
-  };
+  }
 
-  const editItem = async (selectedItem: Service) => {
+  async function editItem(selectedItem: Service) {
     dialogLoader.value = true;
     success.value = false;
 
@@ -84,9 +84,9 @@ export function useItemOperations() {
     } finally {
       dialogLoader.value = false;
     }
-  };
+  }
 
-  const deleteItemConfirmed = async (selectedItem: Service) => {
+  async function deleteItemConfirmed(selectedItem: Service) {
     dialogLoader.value = true;
     success.value = false;
     try {
@@ -104,7 +104,7 @@ export function useItemOperations() {
     } finally {
       dialogLoader.value = false;
     }
-  };
+  }
 
   return {
     dialogLoader,

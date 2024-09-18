@@ -94,7 +94,7 @@ const props = defineProps({
   isOpened: Boolean,
 });
 
-const validateForm = () => {
+function validateForm() {
   return (
     name.value.trim() !== "" &&
     url.value.trim() !== "" &&
@@ -103,7 +103,7 @@ const validateForm = () => {
     password.value.trim() !== "" &&
     !isNaN(virtual_machine.value)
   );
-};
+}
 </script>
 
 <style scoped></style>

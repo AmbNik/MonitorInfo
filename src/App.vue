@@ -8,12 +8,17 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 import { SnackbarColor } from "@/types/enum/snackbarColor";
+import Snackbar from "@/components/UI/Snackbar.vue";
 
-const snackbarRef = ref(null);
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
-const showSnackbar = (message: string, color: SnackbarColor): void => {
-  snackbarRef.value.showSnackbar(message, color);
-};
+function showSnackbar(message: string, color: SnackbarColor): void {
+  if (snackbarRef.value) {
+    snackbarRef.value.showSnackbar(message, color);
+  } else {
+    console.warn("Snackbar reference is not available.");
+  }
+}
 
 provide("showSnackbar", showSnackbar);
 </script>

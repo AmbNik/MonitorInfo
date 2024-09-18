@@ -6,22 +6,22 @@ export function useApplications() {
   const data = ref<any | null>(null);
   const error = ref<null>(null);
 
-  const getApplicationsStart = () => {
+  function getApplicationsStart() {
     isLoading.value = true;
     data.value = null;
-  };
+  }
 
-  const getApplicationsSuccess = (items: any) => {
+  function getApplicationsSuccess(items: any) {
     isLoading.value = false;
     data.value = items;
-  };
+  }
 
-  const getApplicationsFailure = (errors: any) => {
+  function getApplicationsFailure(errors: any) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const getApplications = async (): Promise<any> => {
+  async function getApplications(): Promise<any> {
     try {
       getApplicationsStart();
       const applications = await applicationsApi.getApplications();
@@ -32,22 +32,22 @@ export function useApplications() {
 
       throw errors;
     }
-  };
+  }
 
-  const ApplicationsStart = () => {
+  function ApplicationsStart() {
     isLoading.value = true;
-  };
+  }
 
-  const ApplicationsSuccess = () => {
+  function ApplicationsSuccess() {
     isLoading.value = false;
-  };
+  }
 
-  const ApplicationsFailure = (errors: any) => {
+  function ApplicationsFailure(errors: any) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const addApplications = async (applicationData: any): Promise<any> => {
+  async function addApplications(applicationData: any): Promise<any> {
     try {
       ApplicationsStart();
       const response = await applicationsApi.addApplications(applicationData);
@@ -57,12 +57,9 @@ export function useApplications() {
       getApplicationsFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const updateApplications = async (
-    id: any,
-    selectedItem: any
-  ): Promise<any> => {
+  async function updateApplications(id: any, selectedItem: any): Promise<any> {
     try {
       ApplicationsStart();
       await applicationsApi.updateApplications(id, selectedItem);
@@ -71,9 +68,9 @@ export function useApplications() {
       ApplicationsFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const deleteApplications = async (id: any): Promise<any> => {
+  async function deleteApplications(id: any): Promise<any> {
     try {
       ApplicationsStart();
       await applicationsApi.deleteApplications(id);
@@ -82,7 +79,7 @@ export function useApplications() {
       ApplicationsFailure(errors);
       throw errors;
     }
-  };
+  }
 
   return {
     data,

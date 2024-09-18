@@ -122,9 +122,9 @@ const uniqueTagsList = computed(() => {
 const copyText = ref("");
 const passwordVisible = ref(false);
 
-const togglePasswordVisibility = () => {
+function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
-};
+}
 const router = useRouter();
 
 const {
@@ -162,31 +162,31 @@ const newItem = ref({
   tags: "",
 });
 
-const openDialogInfo = (item) => {
+function openDialogInfo(item) {
   console.log("openDialogInfo", item);
   selectedItem.value = item;
   dialogInfo.value = true;
-};
+}
 
-const AddItemOpenDialog = (tag) => {
+function AddItemOpenDialog(tag) {
   resetNewItem();
   if (tag == "Без тега") tag = null;
   newItem.value.tags = tag;
   dialogAdd.value = true;
-};
+}
 
 const сopySelectedItem = ref({});
-const updateSelectedItem = (item) => {
+function updateSelectedItem(item) {
   selectedItem.value = item;
   сopySelectedItem.value = ref({ ...item });
   // 11111
   // dialogEdit.value = true;
-};
+}
 
 // 11111
-const openDialogEdit = (item) => {
+function openDialogEdit(item) {
   formHelperRef.value.open(item);
-};
+}
 const resetNewItem = () => {
   newItem.value = {
     id: "",
@@ -200,7 +200,7 @@ const resetNewItem = () => {
 
 const { copy } = useClipboard();
 
-const copyToClipboard = async (text) => {
+async function copyToClipboard(text) {
   if (text) {
     console.log("copyToClipboard", text);
     await navigator.clipboard.writeText(text);
@@ -209,35 +209,35 @@ const copyToClipboard = async (text) => {
     showSnackbar(snackbarMessage.value, snackbarColor.value);
     success.value = true;
   }
-};
-const handleSave = (item) => {
+}
+function handleSave(item) {
   updateSelectedItem(item);
   editSelectedItem();
   //1111
   formHelperRef.value.close();
-};
+}
 const ipv4Regex =
   /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
 const ipv6Regex =
   /^((?:[0-9a-fA-F]{1,4}:){7}(?:[0-9a-fA-F]{1,4}|:)|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:(?::[0-9a-fA-F]{1,4}){1,7}|::)$/i;
 
 // Функция для проверки IPv4
-const isValidIPv4 = (ip) => {
+function isValidIPv4(ip) {
   return ipv4Regex.test(ip);
-};
+}
 
-const isValidIPv6 = (ip) => {
+function isValidIPv6(ip) {
   return ipv6Regex.test(ip);
-};
+}
 let disabledSave = ref(false);
-const validateForm = (item) => {
+function validateForm(item) {
   disabledSave.value =
     item.name.trim() !== "" &&
     item.ip.trim() !== "" &&
     (ipv4Regex.test(item.ip) || ipv6Regex.test(item.ip)) &&
     item.login.trim() !== "" &&
     item.password.trim() !== "";
-};
+}
 
 // Определите правила валидации
 const validationRules = {
@@ -253,27 +253,27 @@ const validationRules = {
   password: (v) => !!v || "password обязательно",
 };
 
-const editSelectedItem = async () => {
+async function editSelectedItem() {
   await editItem(selectedItem.value);
-};
+}
 
-const addSelectedItem = async () => {
+async function addSelectedItem() {
   await addItem(newItem.value);
-};
+}
 
-const dialogDeleteSelectedItem = (item) => {
+function dialogDeleteSelectedItem(item) {
   selectedItem.value = item;
   dialogDelete.value = true;
-};
+}
 
-const deleteSelectedItem = async () => {
+async function deleteSelectedItem() {
   console.log("selectedItem.value", selectedItem.value);
   await deleteItemConfirmed(selectedItem.value);
-};
+}
 
-const dialogClose = () => {
+function dialogClose() {
   dialogEdit.value = false;
-};
+}
 </script>
 
 <style></style>

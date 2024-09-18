@@ -94,9 +94,9 @@ const showSnackbar = inject("showSnackbar");
 ///1111
 const formHelperRef = ref(null);
 
-const openDialogEdit = (item) => {
+function openDialogEdit(item) {
   formHelperRef.value.open(item);
-};
+}
 const virtualMachines = computed({
   get: () => virtualMachinesData.value?.data || [],
 });
@@ -124,9 +124,9 @@ const copyText = ref("");
 
 const passwordVisible = ref(false);
 
-const togglePasswordVisibility = () => {
+function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
-};
+}
 
 const router = useRouter();
 
@@ -168,11 +168,11 @@ onMounted(async () => {
 
 console.log("virtualMachineNames", virtualMachineNames);
 
-const getVirtualMachineIdByName = (id) => {
+function getVirtualMachineIdByName(id) {
   console.log("id", id);
   const vm = virtualMachinesData.value?.data.find((vm) => vm.id === id);
   return vm ? vm.name : "не указано";
-};
+}
 
 const selectedItem = ref({
   id: "",
@@ -198,25 +198,25 @@ const newItem = ref({
   virtual_machine: "",
 });
 
-const openDialogInfo = (item) => {
+function openDialogInfo(item) {
   console.log("openDialogInfo", item);
   selectedItem.value = item;
   success.value = false;
   dialogInfo.value = true;
-};
+}
 
-const AddItemOpenDialog = (tag) => {
+function AddItemOpenDialog(tag) {
   resetNewItem();
   if (tag == "Без тега") tag = null;
   newItem.value.tags = tag;
   dialogAdd.value = true;
-};
+}
 const сopySelectedItem = ref({});
-const updateSelectedItem = (item) => {
+function updateSelectedItem(item) {
   selectedItem.value = item;
   сopySelectedItem.value = ref({ ...item });
   // dialogEdit.value = true;
-};
+}
 
 const resetNewItem = () => {
   newItem.value = {
@@ -233,23 +233,23 @@ const resetNewItem = () => {
 
 const { copy } = useClipboard();
 
-const copyToClipboard = async (text) => {
+async function copyToClipboard(text) {
   if (text) {
     await navigator.clipboard.writeText(text);
     snackbarMessage.value = "Скопирован " + text + " в буфер обмена";
     snackbarColor.value = "blue-darken-3";
     showSnackbar(snackbarMessage.value, snackbarColor.value);
   }
-};
-const handleSave = (item) => {
+}
+function handleSave(item) {
   updateSelectedItem(item);
   editSelectedItem();
   //1111
   formHelperRef.value.close();
-};
+}
 
 let disabledSave = ref(false);
-const validateForm = (item) => {
+function validateForm(item) {
   console.log("item", item);
   disabledSave.value =
     item.name.trim() !== "" &&
@@ -258,7 +258,7 @@ const validateForm = (item) => {
     item.login.trim() !== "" &&
     item.password.trim() !== "" &&
     !isNaN(item.virtual_machine);
-};
+}
 
 const validationRules = {
   name: (v) => !!v || "name обязательно",
@@ -272,27 +272,27 @@ const validationRules = {
   ],
 };
 
-const editSelectedItem = async () => {
+async function editSelectedItem() {
   await editItem(selectedItem.value);
-};
+}
 
-const addSelectedItem = async () => {
+async function addSelectedItem() {
   await addItem(newItem.value);
-};
+}
 
-const dialogDeleteSelectedItem = (item) => {
+function dialogDeleteSelectedItem(item) {
   selectedItem.value = item;
   dialogDelete.value = true;
-};
+}
 
-const deleteSelectedItem = async () => {
+async function deleteSelectedItem() {
   console.log("selectedItem.value", selectedItem.value);
   await deleteItemConfirmed(selectedItem.value);
-};
+}
 
-const dialogClose = () => {
+function dialogClose() {
   dialogEdit.value = false;
-};
+}
 </script>
 
 <style></style>

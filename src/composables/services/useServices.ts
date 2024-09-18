@@ -8,22 +8,22 @@ export function useServices() {
   const data = ref<Service[] | null>(null);
   const error = ref<AxiosError | null>(null);
 
-  const getServicesStart = () => {
+  function getServicesStart() {
     isLoading.value = true;
     data.value = null;
-  };
+  }
 
-  const getServicesSuccess = (items: Service[]) => {
+  function getServicesSuccess(items: Service[]) {
     isLoading.value = false;
     data.value = items;
-  };
+  }
 
-  const getServicesFailure = (errors: AxiosError) => {
+  function getServicesFailure(errors: AxiosError) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const getServices = async (): Promise<Service[]> => {
+  async function getServices(): Promise<Service[]> {
     console.log("sdsd");
     try {
       getServicesStart();
@@ -36,22 +36,22 @@ export function useServices() {
 
       throw errors;
     }
-  };
+  }
 
-  const ServicesStart = () => {
+  function ServicesStart() {
     isLoading.value = true;
-  };
+  }
 
-  const ServicesSuccess = () => {
+  function ServicesSuccess() {
     isLoading.value = false;
-  };
+  }
 
-  const ServicesFailure = (errors: AxiosError) => {
+  function ServicesFailure(errors: AxiosError) {
     isLoading.value = false;
     error.value = errors;
-  };
+  }
 
-  const addServices = async (serviceData: Service): Promise<Service> => {
+  async function addServices(serviceData: Service): Promise<Service> {
     try {
       ServicesStart();
       const response = await servicesApi.addService(serviceData);
@@ -62,12 +62,12 @@ export function useServices() {
       getServicesFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const updateService = async (
+  async function updateService(
     id: number,
     selectedItem: Service
-  ): Promise<void> => {
+  ): Promise<void> {
     try {
       ServicesStart();
       await servicesApi.updateService(id, selectedItem);
@@ -76,9 +76,9 @@ export function useServices() {
       ServicesFailure(errors);
       throw errors;
     }
-  };
+  }
 
-  const deleteService = async (id: number): Promise<void> => {
+  async function deleteService(id: number): Promise<void> {
     try {
       ServicesStart();
       await servicesApi.deleteService(id);
@@ -87,7 +87,7 @@ export function useServices() {
       ServicesFailure(errors);
       throw errors;
     }
-  };
+  }
 
   return {
     data,

@@ -64,9 +64,9 @@ export default {
       },
     ];
 
-    const navigateTo = (route) => {
+    function navigateTo(route) {
       router.push(route);
-    };
+    }
 
     return {
       drawer,

@@ -80,9 +80,9 @@ const dialogAdd = defineModel("dialogAdd");
 
 const passwordVisible = ref(false);
 
-const togglePasswordVisibility = () => {
+function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
-};
+}
 
 const props = defineProps({
   item: Object,
@@ -93,10 +93,10 @@ const props = defineProps({
   disabledSave: Boolean,
 });
 
-const validateForm = (item) => {
+function validateForm(item) {
   emit("validate-form", item);
   return props.disabledSave;
-};
+}
 
 const emit = defineEmits(["validate-form"]);
 </script>

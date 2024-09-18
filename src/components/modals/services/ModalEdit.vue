@@ -88,16 +88,16 @@ const props = defineProps({
   disabledSave: Boolean,
 });
 
-const validateForm = (item) => {
+function validateForm(item) {
   emit("validate-form", item);
   return props.disabledSave;
-};
+}
 
 const passwordVisible = ref(false);
 
-const togglePasswordVisibility = () => {
+function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
-};
+}
 
 const emit = defineEmits(["validate-form"]);
 </script>

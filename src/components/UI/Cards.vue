@@ -71,8 +71,8 @@ const items = defineModel("items");
 const props = defineProps({
   tag: String,
 });
-const filteredItems = (tag) => {
+function filteredItems(tag) {
   if (tag == "Без тега") tag = null;
   return items.value.filter((item) => item.tags === tag);
-};
+}
 </script>
