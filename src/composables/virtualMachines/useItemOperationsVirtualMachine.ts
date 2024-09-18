@@ -2,6 +2,7 @@
 import { ref, computed, inject } from "vue";
 // import { useServicesApi } from "./useServicesApi";
 import { useVirtualMachines } from "@/composables/virtualMachines/useVirtualMachines";
+import { SnackbarColor } from "@/types/enum/snackbarColor";
 
 export function useItemOperationsVirtualMachine() {
   const {
@@ -15,11 +16,6 @@ export function useItemOperationsVirtualMachine() {
   } = useVirtualMachines();
 
   type ShowSnackbar = (message: string, color: SnackbarColor) => void;
-  type SnackbarColor =
-    | "blue-darken-3"
-    | "green-darken-1"
-    | "red-darken-1"
-    | "yellow-darken-1";
 
   const showSnackbar = inject("showSnackbar") as ShowSnackbar;
 
@@ -31,17 +27,19 @@ export function useItemOperationsVirtualMachine() {
     }
   });
 
-  const handleSuccess = (message: string) => {
+  const handleSnackbar = (message: string, color: SnackbarColor) => {
     snackbarMessage.value = message;
-    snackbarColor.value = "green-darken-1";
+    snackbarColor.value = color;
+    success.value = true;
     showSnackbar(snackbarMessage.value, snackbarColor.value);
-    setTimeout(() => (success.value = false), 5000);
+  };
+
+  const handleSuccess = (message: string) => {
+    handleSnackbar(message, SnackbarColor.SuccessColor);
   };
 
   const handleError = (message: string) => {
-    snackbarMessage.value = message;
-    snackbarColor.value = "red-darken-1";
-    showSnackbar(snackbarMessage.value, snackbarColor.value);
+    handleSnackbar(message, SnackbarColor.ErrorColor);
   };
 
   const virtualMachines = computed(() => data.value?.data || []);

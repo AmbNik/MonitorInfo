@@ -1,52 +1,19 @@
 <template>
   <v-app>
-    snackbarState.success {{ snackbarState.success }}
     <Navbar />
-
-    <Snackbar
-      v-if="snackbarState.success"
-      :success="snackbarState.success"
-      :color="snackbarState.snackbarColor"
-      :message="snackbarState.snackbarMessage"
-    />
+    <Snackbar ref="snackbarRef" />
   </v-app>
 </template>
 
 <script setup lang="ts">
 import { provide, ref } from "vue";
+import { SnackbarColor } from "@/types/enum/snackbarColor";
 
-type ShowSnackbar = (
-  message: string,
-  color: SnackbarColor,
-  success: boolean
-) => void;
-type SnackbarColor =
-  | "blue-darken-3"
-  | "green-darken-1"
-  | "red-darken-1"
-  | "yellow-darken-1";
+const snackbarRef = ref(null);
 
-const snackbarState = ref({
-  success: false,
-  snackbarColor: "" as SnackbarColor,
-  snackbarMessage: "",
-});
-
-const showSnackbar = (
-  message: string = "Успех",
-  color: SnackbarColor = "green-darken-1",
-  success: boolean
-): void => {
-  snackbarState.value.success = false;
-  // Задержка, чтобы скрыть Snackbar со старыми данными и показать с новыми
-  setTimeout(() => {
-    snackbarState.value.snackbarMessage = message;
-    snackbarState.value.snackbarColor = color;
-    snackbarState.value.success = true;
-  }, 50);
+const showSnackbar = (message: string, color: SnackbarColor): void => {
+  snackbarRef.value.showSnackbar(message, color);
 };
 
-provide("showSnackbar", showSnackbar as ShowSnackbar);
-
-provide("snackbarState", snackbarState);
+provide("showSnackbar", showSnackbar);
 </script>

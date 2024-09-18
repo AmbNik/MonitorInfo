@@ -1,5 +1,6 @@
 import { ref, computed, inject } from "vue";
 import { useApplicationsApi } from "./useApplicationsApi";
+import { SnackbarColor } from "@/types/enum/snackbarColor";
 
 export function useItemOperationsApplications() {
   const {
@@ -10,16 +11,7 @@ export function useItemOperationsApplications() {
     getApplications,
   } = useApplicationsApi();
 
-  type ShowSnackbar = (
-    message: string,
-    color: SnackbarColor,
-    success: boolean
-  ) => void;
-  type SnackbarColor =
-    | "blue-darken-3"
-    | "green-darken-1"
-    | "red-darken-1"
-    | "yellow-darken-1";
+  type ShowSnackbar = (message: string, color: SnackbarColor) => void;
 
   const showSnackbar = inject("showSnackbar") as ShowSnackbar;
   onMounted(async () => {
@@ -34,15 +26,15 @@ export function useItemOperationsApplications() {
     snackbarMessage.value = message;
     snackbarColor.value = color;
     success.value = true;
-    showSnackbar(snackbarMessage.value, snackbarColor.value, success.value);
+    showSnackbar(snackbarMessage.value, snackbarColor.value);
   };
 
   const handleSuccess = (message: string) => {
-    handleSnackbar(message, "green-darken-1");
+    handleSnackbar(message, SnackbarColor.SuccessColor);
   };
 
   const handleError = (message: string) => {
-    handleSnackbar(message, "red-darken-1");
+    handleSnackbar(message, SnackbarColor.ErrorColor);
     console.error(message);
   };
 
