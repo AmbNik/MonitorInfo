@@ -1,9 +1,10 @@
 <template>
   <v-sheet class="d-flex flex-column">
     <v-snackbar
-      v-model="success"
+      v-model="snackbarVisible"
       :color="props.color"
       class="align-start pt-10"
+      :timeout="5000"
     >
       <p class="text-h5">
         <slot name="message">{{ props.message }} </slot>
@@ -13,8 +14,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineModel } from "vue";
-const success = defineModel<boolean>("success");
+import { defineProps } from "vue";
+
 type SnackbarColor =
   | "blue-darken-3"
   | "green-darken-1"
@@ -24,5 +25,30 @@ type SnackbarColor =
 const props = defineProps<{
   color: SnackbarColor;
   message: string;
+  success: Boolean;
 }>();
+
+const snackbarVisible = ref(false);
+
+watch(
+  () => props.success,
+  (newValue: any) => {
+    console.log("New value of success:", newValue);
+
+    if (newValue) {
+      snackbarVisible.value = false;
+      console.log("sdsd", props.success);
+      snackbarVisible.value = true;
+    } else {
+      snackbarVisible.value = false;
+    }
+  },
+  { immediate: true }
+);
 </script>
+
+<style>
+.v-snackbar {
+  z-index: 2000 !important;
+}
+</style>

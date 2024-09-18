@@ -1,8 +1,11 @@
 <template>
   <v-app>
+    snackbarState.success {{ snackbarState.success }}
     <Navbar />
+
     <Snackbar
-      v-model:success="snackbarState.success"
+      v-if="snackbarState.success"
+      :success="snackbarState.success"
       :color="snackbarState.snackbarColor"
       :message="snackbarState.snackbarMessage"
     />
@@ -12,7 +15,11 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 
-type ShowSnackbar = (message: string, color: SnackbarColor) => void;
+type ShowSnackbar = (
+  message: string,
+  color: SnackbarColor,
+  success: boolean
+) => void;
 type SnackbarColor =
   | "blue-darken-3"
   | "green-darken-1"
@@ -25,11 +32,21 @@ const snackbarState = ref({
   snackbarMessage: "",
 });
 
-const showSnackbar = (message: string, color: SnackbarColor): void => {
-  snackbarState.value.snackbarMessage = message;
-  snackbarState.value.snackbarColor = color;
-  snackbarState.value.success = true;
+const showSnackbar = (
+  message: string = "Успех",
+  color: SnackbarColor = "green-darken-1",
+  success: boolean
+): void => {
+  snackbarState.value.success = false;
+  // Задержка, чтобы скрыть Snackbar со старыми данными и показать с новыми
+  setTimeout(() => {
+    snackbarState.value.snackbarMessage = message;
+    snackbarState.value.snackbarColor = color;
+    snackbarState.value.success = true;
+  }, 50);
 };
 
 provide("showSnackbar", showSnackbar as ShowSnackbar);
+
+provide("snackbarState", snackbarState);
 </script>

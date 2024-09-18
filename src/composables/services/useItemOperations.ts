@@ -7,7 +7,11 @@ export function useItemOperations() {
   const { data, addServices, updateServiceUse, deleteServiceUse, getServices } =
     useServicesApi();
 
-  type ShowSnackbar = (message: string, color: SnackbarColor) => void;
+  type ShowSnackbar = (
+    message: string,
+    color: SnackbarColor,
+    success: boolean
+  ) => void;
   type SnackbarColor =
     | "blue-darken-3"
     | "green-darken-1"
@@ -24,21 +28,21 @@ export function useItemOperations() {
     }
   });
 
-  const handleSuccess = (message: string) => {
+  const handleSnackbar = (message: string, color: SnackbarColor) => {
     snackbarMessage.value = message;
-    snackbarColor.value = "green-darken-1";
-    showSnackbar(snackbarMessage.value, snackbarColor.value);
+    snackbarColor.value = color;
     success.value = true;
-    setTimeout(() => (success.value = false), 5000);
+    showSnackbar(snackbarMessage.value, snackbarColor.value, success.value);
+  };
+
+  const handleSuccess = (message: string) => {
+    handleSnackbar(message, "green-darken-1");
   };
 
   const handleError = (message: string) => {
-    snackbarMessage.value = message;
-    snackbarColor.value = "red-darken-1";
-    showSnackbar(snackbarMessage.value, snackbarColor.value);
+    handleSnackbar(message, "red-darken-1");
     console.error(message);
   };
-
   const services = computed(() => data.value || []);
 
   const dialogLoader = ref<boolean>(false);
