@@ -16,13 +16,11 @@ const addService = async (serviceData: Service) => {
   }
 };
 
-// Метод для обновления существующего сервиса
 const updateService = (id: number, serviceData: Service) => {
   console.log("serviceData", serviceData);
   return axios.put(`/services/${id}/`, serviceData);
 };
 
-// Метод для удаления сервиса
 const deleteService = (id: number) => {
   return axios.delete(`/services/${id}/`);
 };

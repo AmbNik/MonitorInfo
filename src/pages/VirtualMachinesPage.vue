@@ -28,19 +28,6 @@
         </template>
       </TagAccordion>
 
-      <!-- <ModalEditVM
-        v-model:dialog="dialogEdit"
-        :item="сopySelectedItem"
-        :title="'Изменить элемент'"
-        :virtualMachines="virtualMachineNames"
-        :uniqueTagsList="uniqueTagsList"
-        :validationRules="validationRules"
-        @save-items="handleSave"
-        @dialog-close="dialogClose"
-        @validate-form="validateForm"
-        :disabledSave="disabledSave"
-      /> -->
-
       <FormHelper
         ref="formHelperRef"
         @confirm="handleSave"
