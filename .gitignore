@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 /dist
+.gitlab-ci.yml
+
 
 # local env files
 .env.local
